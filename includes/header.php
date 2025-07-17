@@ -18,20 +18,20 @@
         <h1>📚 BookNest</h1>
         <nav>
             <ul>
-                <li><a href="BookNest/index.php">Home</a></li>
-                <li><a href="/BookNest/browse.php">Browse</a></li>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="browse.php">Browse</a></li>
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Admin'): ?>
-                    <li><a href="/BookNest/admin/dashboard.php">Admin Panel</a></li>
+                    <li><a href="admin/dashboard.php">Admin Panel</a></li>
                 <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff'): ?>
-                    <li><a href="/BookNest/staff/orders.php">Staff Panel</a></li>
+                    <li><a href="staff/orders.php">Staff Panel</a></li>
                 <?php endif; ?>
-                <li><a href="/BookNest/cart.php">Cart</a></li>
+                <li><a href="cart.php">Cart</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <li><a href="/BookNest/order_history.php">My Orders</a></li>
-                    <li><a href="/BookNest/logout.php">Logout</a></li>
+                    <li><a href="order_history.php">My Orders</a></li>
+                    <li><a href="logout.php">Logout</a></li>
                 <?php else: ?>
-                    <li><a href="/BookNest/login.php">Login</a></li>
-                    <li><a href="/BookNest/register.php">Sign Up</a></li>
+                    <li><a href="login.php">Login</a></li>
+                    <li><a href="register.php">Sign Up</a></li>
                 <?php endif; ?>
             </ul>
         </nav>

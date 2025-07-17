@@ -28,7 +28,7 @@ if (isset($_GET['delete'])) {
 
 $categories = $conn->query("SELECT * FROM categories");
 $books = $conn->query("SELECT * FROM books"); 
-include 'includes/header.php';
+include '../includes/header.php';
 ?>
 
 <div class="container">
