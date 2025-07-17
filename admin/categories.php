@@ -1,6 +1,6 @@
 <?php
 require_once '../includes/db.php';
-$page_css = '../css/categories.css';
+$page_css = '/BookNest/css/categories.css';
 
 if ($_SESSION['role'] != 'admin') {
     header("Location: ../login.php");

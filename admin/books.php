@@ -1,9 +1,9 @@
 <?php
-require_once '/BookNest/includes/db.php';
+require_once '../includes/db.php';
 $page_css = '/BookNest/css/books.css';
 
 if ($_SESSION['role'] != 'admin') {
-    header("Location: /BookNest/login.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -28,7 +28,7 @@ if (isset($_GET['delete'])) {
 
 $categories = $conn->query("SELECT * FROM categories");
 $books = $conn->query("SELECT * FROM books"); 
-include '/BookNest/includes/header.php';
+include 'includes/header.php';
 ?>
 
 <div class="container">
@@ -64,4 +64,4 @@ include '/BookNest/includes/header.php';
     </div>
 </div>
 
-<?php include '/BookNest/includes/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>

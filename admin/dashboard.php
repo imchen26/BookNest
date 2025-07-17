@@ -2,11 +2,10 @@
 require_once '../includes/db.php';
 $page_css = '../css/dashboard.css';
 
-/*
 if ($_SESSION['role'] != 'admin') {
     header("Location: ../login.php");
     exit;
-} */
+} 
 
 include '../includes/header.php';
 ?>

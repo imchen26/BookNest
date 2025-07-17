@@ -18,7 +18,7 @@
         <h1>📚 BookNest</h1>
         <nav>
             <ul>
-                <li><a href="/BookNest/index.php">Home</a></li>
+                <li><a href="BookNest/index.php">Home</a></li>
                 <li><a href="/BookNest/browse.php">Browse</a></li>
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Admin'): ?>
                     <li><a href="/BookNest/admin/dashboard.php">Admin Panel</a></li>

@@ -1,7 +1,7 @@
 <?php 
-require_once '/BookNest/includes/db.php';
+require_once 'includes/db.php';
 $page_css = '/BookNest/css/cart.css';
-include '/BookNest/includes/header.php';
+include 'includes/header.php';
 
 if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 
@@ -65,10 +65,10 @@ $total = 0;
 
             <div class="cart-summary">
                 <p><strong>Total: ₱<?php echo number_format($total, 2); ?></strong></p>
-                <a href="/BookNest/order.php" class="checkout-btn">Proceed to Checkout</a>
+                <a href="order.php" class="checkout-btn">Proceed to Checkout</a>
             </div>
         <?php endif; ?>
     </div>
 </div>
 
-<?php include '/BookNest/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

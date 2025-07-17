@@ -1,8 +1,8 @@
 <?php
-require_once '/BookNest/includes/db.php';
+require_once 'includes/db.php';
 $page_css = '/BookNest/css/login.css'; 
 $hideLayout = true; 
-include '/BookNest/includes/header.php';
+include 'includes/header.php';
 
 $error = "";
 
@@ -22,11 +22,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['role'] = $row['role'];
 
             if ($row['role'] == 'admin') {
-                header("Location: /BookNest/admin/dashboard.php");
+                header("Location: admin/dashboard.php");
             } elseif ($row['role'] == 'staff') {
-                header("Location: /BookNest/staff/orders.php");
+                header("Location: staff/orders.php");
             } else {
-                header("Location: /BookNest/index.php");
+                header("Location: index.php");
             }
             exit;
         } else {
@@ -53,8 +53,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button type="submit">Login</button>
         </form>
-        <p class="register-link">Don't have an account? <a href="/BookNest/register.php">Sign up here</a>.</p>
+        <p class="register-link">Don't have an account? <a href="register.php">Sign up here</a>.</p>
     </div>
 </div>
 
-<?php include '/BookNest/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

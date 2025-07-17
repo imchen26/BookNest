@@ -1,7 +1,7 @@
 <?php
-require_once '/BookNest/includes/db.php';
+require_once 'includes/db.php';
 $page_css = '/BookNest/css/browse.css';
-include '/BookNest/includes/header.php';
+include 'includes/header.php';
 
 $category_id = isset($_GET['category']) ? intval($_GET['category']) : 0;
 
@@ -44,4 +44,4 @@ $books_result = $books_query->get_result();
     </div>
 </div>
 
-<?php include '/BookNest/includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
