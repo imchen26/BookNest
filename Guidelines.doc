@@ -76,3 +76,16 @@ booknest/
 │
 ├── staff/
 │   └── orders.php      # View/process customer orders
+
+-----------------------------------------------------------------------------------------------
+Tools Required:
+
+Tool                |  Purpose
+XAMPP               |  Run Apache server & MySQL database
+MySQL Workbench     |  Design and manage your DB
+VS Code	            |  Edit PHP, CSS, HTML files
+Git + GitHub        |  Version control and cloud repo
+Browser (localhost)	|  View & test the app
+
+-----------------------------------------------------------------------------------------------
+Commands & Setup:
