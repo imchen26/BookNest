@@ -1,14 +1,14 @@
 <?php
-require_once 'includes/db.php';
-$page_css = 'css/order.css'; 
+require_once '/BookNest/includes/db.php';
+$page_css = '/BookNest/css/order.css'; 
  
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
-    header("Location: login.php");
+    header("Location: /BookNest/login.php");
     exit;
 }
 
 if (empty($_SESSION['cart'])) {
-    header("Location: cart.php");
+    header("Location: /BookNest/cart.php");
     exit;
 } 
 
@@ -49,15 +49,15 @@ foreach ($_SESSION['cart'] as $book_id => $qty) {
 
 $_SESSION['cart'] = []; 
 
-include 'includes/header.php'; 
+include '/BookNest/includes/header.php'; 
 ?>
 
 <div class="container">
     <div class="order-container">
         <h2>✅ Order Placed!</h2>
         <p>Your order ID is <strong>#<?php echo $order_id; ?></strong></p>
-        <a href="order_history.php">View Order History</a>
+        <a href="/BookNest/order_history.php">View Order History</a>
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '/BookNest/includes/footer.php'; ?>

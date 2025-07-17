@@ -1,7 +1,7 @@
 <?php
-require_once 'includes/db.php';
-$page_css = 'css/index.css'; 
-include 'includes/header.php';
+require_once '/BookNest/includes/db.php';
+$page_css = '/BookNest/css/index.css'; 
+include '/BookNest/includes/header.php';
 
 $result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 6");
 ?>
@@ -24,4 +24,4 @@ $result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 6");
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '/BookNest/includes/footer.php'; ?>

@@ -1,15 +1,15 @@
 <?php
-require_once 'includes/db.php';
-$page_css = 'css/order_history.css'; 
-include 'includes/header.php';
+require_once '/BookNest/includes/db.php';
+$page_css = '/BookNest/css/order_history.css'; 
+include '/BookNest/includes/header.php';
 
-/* if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /BookNest/login.php");
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
-$result = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY created_at DESC"); */
+$result = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY created_at DESC"); 
 ?>
 
 <div class="container">
@@ -25,5 +25,5 @@ $result = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY c
     </div>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+<?php include '/BookNest/includes/footer.php'; ?>
 

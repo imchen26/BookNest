@@ -1,9 +1,9 @@
 <?php
-require_once '../includes/db.php';
-$page_css = '../css/orders.css';
+require_once '/BookNest/includes/db.php';
+$page_css = '/BookNest/css/orders.css';
 
 if ($_SESSION['role'] != 'staff') {
-    header("Location: ../login.php");
+    header("Location: /BookNest/login.php");
     exit;
 }
 
@@ -16,7 +16,7 @@ if (isset($_POST['update_status'])) {
 }
 
 $result = $conn->query("SELECT * FROM orders ORDER BY created_at DESC"); 
-include '../includes/header.php';
+include '/BookNest/includes/header.php';
 ?>
 
 <div class="container">
@@ -47,4 +47,4 @@ include '../includes/header.php';
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include '/BookNest/includes/footer.php'; ?>

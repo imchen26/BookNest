@@ -1,8 +1,8 @@
 <?php
-require_once 'includes/db.php';
-$page_css = 'css/register.css'; 
+require_once '/BookNest/includes/db.php';
+$page_css = '/BookNest/css/register.css'; 
 $hideLayout = true; 
-include 'includes/header.php';
+include '/BookNest/includes/header.php';
 
 $success = "";
 $error = "";
@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button type="submit">Register</button>
         </form>
-        <p class="login-link">Already have an account? <a href="login.php">Login here</a>.</p>
+        <p class="login-link">Already have an account? <a href="/BookNest/login.php">Login here</a>.</p>
     </div>
 </div>
-<?php include 'includes/footer.php'; ?>
+<?php include '/BookNest/includes/footer.php'; ?>
