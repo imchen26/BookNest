@@ -1,8 +1,9 @@
 <?php
-$host = 'localhost';                 
-$dbname = 'booknest';   
-$username = 'root';      
-$password = '';           
+$host = 'localhost';
+$username = 'root';
+$password = '';
+$dbname = 'booknest';
+$port = 3306;
 
 $conn = new mysqli($host, $username, $password, $dbname, $port);
 
