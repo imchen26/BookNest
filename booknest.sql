@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 17, 2025 at 02:23 PM
+-- Generation Time: Jul 17, 2025 at 03:39 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -25,9 +25,12 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBook` (IN `p_title` VARCHAR(255), IN `p_author` VARCHAR(255), IN `p_price` DECIMAL(10,2), IN `p_stock` INT, IN `p_category_id` INT, IN `p_is_featured` BOOLEAN)   BEGIN
-    INSERT INTO books(title, author, price, stock, category_id, is_featured)
-    VALUES(p_title, p_author, p_price, p_stock, p_category_id, p_is_featured);
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBook` (IN `p_title` VARCHAR(255), IN `p_author` VARCHAR(255), IN `p_price` DECIMAL(10,2), IN `p_stock` INT, IN `p_category_id` INT, IN `p_is_featured` BOOLEAN, IN `p_is_digital` BOOLEAN)   BEGIN
+    INSERT INTO books (
+        title, author, price, stock, category_id, is_featured, is_digital
+    ) VALUES (
+        p_title, p_author, p_price, p_stock, p_category_id, p_is_featured, p_is_digital
+    );
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `PlaceOrder` (IN `p_user_id` INT)   BEGIN
@@ -84,20 +87,31 @@ CREATE TABLE `books` (
   `price` decimal(10,2) NOT NULL,
   `stock` int(11) DEFAULT 0,
   `category_id` int(11) DEFAULT NULL,
-  `is_featured` tinyint(1) DEFAULT 0
+  `is_featured` tinyint(1) DEFAULT 0,
+  `is_digital` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `books`
 --
 
-INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_id`, `is_featured`) VALUES
-(1, 'The Alchemist', 'Paulo Coelho', 499.00, 10, 1, 1),
-(2, 'A Brief History of Time', 'Stephen Hawking', 650.00, 8, 3, 0),
-(3, 'Rich Dad Poor Dad', 'Robert Kiyosaki', 550.00, 12, 5, 1),
-(4, 'Harry Potter and the Sorcerer\'s Stone', 'J.K. Rowling', 450.00, 15, 4, 1),
-(5, 'The Lean Startup', 'Eric Ries', 720.00, 7, 5, 0),
-(6, 'Sherlock Holmes', 'Arthur Conan Doyle', 380.00, 5, 6, 0);
+INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_id`, `is_featured`, `is_digital`) VALUES
+(1, 'The Alchemist', 'Paulo Coelho', 499.00, 10, 1, 1, 0),
+(2, 'A Brief History of Time', 'Stephen Hawking', 650.00, 8, 3, 0, 0),
+(3, 'Rich Dad Poor Dad', 'Robert Kiyosaki', 550.00, 12, 5, 1, 0),
+(4, 'Harry Potter and the Sorcerer\'s Stone', 'J.K. Rowling', 450.00, 15, 4, 1, 0),
+(5, 'The Lean Startup', 'Eric Ries', 720.00, 7, 5, 0, 0),
+(6, 'Sherlock Holmes', 'Arthur Conan Doyle', 380.00, 5, 6, 0, 0),
+(7, 'The Silent Patient', 'Alex Michaelides', 499.00, 10, 2, 1, 0),
+(8, 'Atomic Habits', 'James Clear', 599.00, 15, 3, 1, 1),
+(9, 'It Ends With Us', 'Colleen Hoover', 429.00, 20, 4, 0, 0),
+(10, 'Rich Dad Poor Dad', 'Robert T. Kiyosaki', 550.00, 12, 3, 0, 1),
+(11, 'The Psychology of Money', 'Morgan Housel', 470.00, 8, 3, 0, 0),
+(12, 'The Hobbit', 'J.R.R. Tolkien', 620.00, 5, 1, 1, 1),
+(13, 'To Kill a Mockingbird', 'Harper Lee', 450.00, 7, 2, 0, 0),
+(14, '1984', 'George Orwell', 390.00, 6, 2, 0, 1),
+(15, 'Educated', 'Tara Westover', 520.00, 9, 4, 1, 0),
+(16, 'Dune', 'Frank Herbert', 699.00, 4, 1, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -208,7 +222,7 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`) VALUES
 (1, 7, '2025-07-17 12:22:43', 'completed'),
-(2, 8, '2025-07-17 12:22:43', 'pending');
+(2, 8, '2025-07-17 12:22:43', 'processing');
 
 -- --------------------------------------------------------
 
@@ -267,10 +281,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `created_at`) VALUES
-(5, 'admin', 'adminpass', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48'),
-(6, 'staff', 'staffpass', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48'),
-(7, 'cust1', 'custpass', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
-(8, 'cust2', 'custpass', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
+(5, 'admin', '$2y$10$PtX32S29ePGWVaBwSOvRAeIgt/9EjLG42hL3Hdy0618lJ21w4kvga', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48'),
+(6, 'staff', '$2y$10$HZnNT2n2orgKhNfqGDmRpOOWRnN/NN5mVpubC284qdoimILtVbrvi', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48'),
+(7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
+(8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
 
 --
 -- Triggers `users`
@@ -350,7 +364,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `books`
 --
 ALTER TABLE `books`
-  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `cart`
