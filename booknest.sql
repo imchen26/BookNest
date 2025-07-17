@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 17, 2025 at 03:39 PM
+-- Generation Time: Jul 17, 2025 at 04:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -111,7 +111,16 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (13, 'To Kill a Mockingbird', 'Harper Lee', 450.00, 7, 2, 0, 0),
 (14, '1984', 'George Orwell', 390.00, 6, 2, 0, 1),
 (15, 'Educated', 'Tara Westover', 520.00, 9, 4, 1, 0),
-(16, 'Dune', 'Frank Herbert', 699.00, 4, 1, 1, 1);
+(16, 'Dune', 'Frank Herbert', 699.00, 4, 1, 1, 1),
+(17, 'The Notebook', 'Nicholas Sparks', 480.00, 10, 7, 1, 0),
+(18, 'Dracula', 'Bram Stoker', 399.00, 6, 8, 0, 1),
+(19, 'Sapiens: A Brief History of Humankind', 'Yuval Noah Harari', 750.00, 8, 9, 1, 0),
+(20, 'Steve Jobs', 'Walter Isaacson', 820.00, 5, 10, 0, 0),
+(21, 'The Name of the Wind', 'Patrick Rothfuss', 699.00, 7, 11, 1, 1),
+(22, 'The Adventures of Huckleberry Finn', 'Mark Twain', 460.00, 9, 12, 0, 0),
+(23, 'The Power of Now', 'Eckhart Tolle', 520.00, 6, 13, 1, 1),
+(24, 'Milk and Honey', 'Rupi Kaur', 350.00, 15, 14, 1, 1),
+(25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -157,7 +166,16 @@ INSERT INTO `categories` (`category_id`, `name`) VALUES
 (3, 'Science'),
 (4, 'Children'),
 (5, 'Business'),
-(6, 'Mystery');
+(6, 'Mystery'),
+(7, 'Romance'),
+(8, 'Horror'),
+(9, 'History'),
+(10, 'Biography'),
+(11, 'Fantasy'),
+(12, 'Adventure'),
+(13, 'Self-Help'),
+(14, 'Poetry'),
+(15, 'Art & Photography');
 
 -- --------------------------------------------------------
 
@@ -213,16 +231,18 @@ CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending'
+  `status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending',
+  `total_amount` decimal(10,2) DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`) VALUES
-(1, 7, '2025-07-17 12:22:43', 'completed'),
-(2, 8, '2025-07-17 12:22:43', 'processing');
+INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amount`) VALUES
+(1, 7, '2025-07-17 05:10:00', 'pending', 1049.00),
+(2, 8, '2025-07-17 05:12:00', 'pending', 1100.00),
+(9, 7, '2025-07-17 14:01:47', 'pending', 650.00);
 
 -- --------------------------------------------------------
 
@@ -235,18 +255,19 @@ CREATE TABLE `order_items` (
   `order_id` int(11) DEFAULT NULL,
   `book_id` int(11) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `price` decimal(10,2) DEFAULT NULL
+  `subtotal` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `price`) VALUES
-(1, 1, 1, 2, 499.00),
+INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtotal`) VALUES
+(1, 1, 1, 2, 998.00),
 (2, 1, 3, 1, 550.00),
-(3, 2, 4, 1, 450.00),
-(4, 2, 2, 1, 650.00);
+(3, 2, 2, 1, 650.00),
+(4, 2, 4, 1, 450.00),
+(8, 9, 2, 1, 650.00);
 
 --
 -- Triggers `order_items`
@@ -364,7 +385,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `books`
 --
 ALTER TABLE `books`
-  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `cart`
@@ -376,7 +397,7 @@ ALTER TABLE `cart`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `currencies`
@@ -394,13 +415,13 @@ ALTER TABLE `logs`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`

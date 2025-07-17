@@ -13,9 +13,10 @@ $user_id = $_SESSION['user_id'];
 // JOIN with order_items to calculate total price
 $sql = "
     SELECT o.order_id, o.order_date, o.status, 
-           COALESCE(SUM(oi.price * oi.quantity), 0) AS total_price
+           COALESCE(SUM(b.price * oi.quantity), 0) AS total_price
     FROM orders o
     LEFT JOIN order_items oi ON o.order_id = oi.order_id
+    LEFT JOIN books b ON oi.book_id = b.book_id
     WHERE o.user_id = ?
     GROUP BY o.order_id, o.order_date, o.status
     ORDER BY o.order_date DESC

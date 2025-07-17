@@ -3,7 +3,7 @@ require_once 'includes/db.php';
 $page_css = '/BookNest/css/index.css'; 
 include 'includes/header.php';
 
-$result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 6");
+$result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 8");
 ?>
 
 <div class="container">
