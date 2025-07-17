@@ -1,0 +1,78 @@
+Submission of Presentation and DB Script Deadline Date: July 25, 2025
+Demo Schedule: August 1, 2025
+
+MP Requirements
+    • GUI FRONT-END (JAVA, PYTHON, PHP. Any is okay)
+    • Login (based on roles) (At least 3 Roles: Admin, Staff, Customer)
+    • Browse products/ Services (At least 6 products and/or services)
+    • Currency handling (At least 3 currencies: PH Peso, US Dollar, Korean Won)
+    • Admin panel (Add/edit products and services)
+    • Add to cart and place an order
+    • View order history
+
+DELIVERABLES
+1. SQL FILES: Schema, Stored Procedures, Triggers, etc.
+    • Should include the 6 required tables
+    • Should have at least 10 procedures and triggers
+2. GUI Source Codes (Python, Java, PHP, etc.)
+3. PPT PRESENTATION
+    • ONLINE STORE INTRO, ERD DIAGRAM, DESCRIPTION OF PROCEDURES & TRIGGERS,
+    SCREENSHOTS OF GUI, SQL CODE SNIPPETS, EXAMPLE OUTPUT
+• FINAL PROJECT DEADLINE: JULY 24, 2025
+
+------------------------------------------------------------------------------------------------
+Online Store Name: BookNest
+Product/Service Description: An online platform for purchasing books both physical and digital. 
+Target Customers: Students, Professionals, Casual Readers, Parents
+Key Features:
+    • Login & Signup Page (Admin, Staff, Customer)
+    • Browse Book Catalog
+    • Book categorization
+    • Multi-currency support (PHP, USD, etc.)
+    • Admin Panel (add, edit or delete books and manage categories)
+    • Track Order Status 
+    • Featured Books & Staff Picks
+    • Staff-Fullfillment Panel (view, process, and mark the status of book orders)
+
+-----------------------------------------------------------------------------------------------
+Project Structure: 
+
+booknest/
+│
+├── css/
+│   └── books.css
+│   └── browse.css
+│   └── cart.css
+│   └── categories.css
+│   └── dashboard.css
+│   └── footer.css
+│   └── header.css
+│   └── index.css
+│   └── login.css
+│   └── order_history.css
+│   └── order.css
+│   └── orders.css
+│   └── register.css
+│
+├── includes/
+│   ├── db.php          # DB connection
+│   ├── header.php      # Navigation/header
+│   └── footer.php      # Footer
+│
+├── login.php           # Login for Admin, Staff, Customer
+├── register.php        # User signup
+├── logout.php          # Logout
+│
+├── index.php           # Homepage / featured books
+├── browse.php          # Browse books by category
+├── cart.php            # View/add/remove cart items
+├── order.php           # Place order
+├── order_history.php   # View order history
+│
+├── admin/
+│   ├── dashboard.php   # Admin dashboard
+│   ├── books.php       # Add/edit/delete books
+│   └── categories.php  # Manage categories
+│
+├── staff/
+│   └── orders.php      # View/process customer orders
