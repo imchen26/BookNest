@@ -1,15 +1,30 @@
 <?php
-require_once '/BookNest/includes/db.php';
+require_once 'includes/db.php';
 $page_css = '/BookNest/css/order_history.css'; 
-include '/BookNest/includes/header.php';
+include 'includes/header.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /BookNest/login.php");
+    header("Location: login.php");
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
-$result = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY created_at DESC"); 
+
+// JOIN with order_items to calculate total price
+$sql = "
+    SELECT o.order_id, o.order_date, o.status, 
+           COALESCE(SUM(oi.price * oi.quantity), 0) AS total_price
+    FROM orders o
+    LEFT JOIN order_items oi ON o.order_id = oi.order_id
+    WHERE o.user_id = ?
+    GROUP BY o.order_id, o.order_date, o.status
+    ORDER BY o.order_date DESC
+";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <div class="container">
@@ -17,13 +32,12 @@ $result = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY c
         <h2>📦 Your Orders</h2>
         <?php while ($row = $result->fetch_assoc()): ?>
             <div class="order-block">
-                <strong>Order #<?php echo $row['order_id']; ?></strong> - ₱<?php echo number_format($row['total_amount'], 2); ?>
+                <strong>Order #<?php echo $row['order_id']; ?></strong> - ₱<?php echo number_format($row['total_price'], 2); ?>
                 <br>Status: <?php echo ucfirst($row['status']); ?>
-                <br><small>Placed on: <?php echo $row['created_at']; ?></small>
+                <br><small>Placed on: <?php echo $row['order_date']; ?></small>
             </div>
         <?php endwhile; ?>
     </div>
 </div>
 
-<?php include '/BookNest/includes/footer.php'; ?>
-
+<?php include 'includes/footer.php'; ?>

@@ -22,7 +22,7 @@ $books_result = $books_query->get_result();
             <?php while ($cat = $cat_query->fetch_assoc()): ?>
                 <option value="<?php echo $cat['category_id']; ?>" 
                     <?php if ($cat['category_id'] == $category_id) echo "selected"; ?>>
-                    <?php echo $cat['category_name']; ?>
+                    <?php echo $cat['name']; ?>
                 </option>
             <?php endwhile; ?>
         </select>
