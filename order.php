@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/order.css'; 
+include 'includes/header.php'; 
  
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'customer') {
     header("Location: login.php");
@@ -48,8 +49,6 @@ foreach ($_SESSION['cart'] as $book_id => $qty) {
 }
 
 $_SESSION['cart'] = []; 
-
-include 'includes/header.php'; 
 ?>
 
 <div class="container">

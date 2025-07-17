@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/db.php';
 $page_css = '/BookNest/css/categories.css';
+include '../includes/header.php';
 
 if ($_SESSION['role'] != 'admin') {
     header("Location: ../login.php");
@@ -20,7 +21,6 @@ if (isset($_GET['delete'])) {
 }
 
 $result = $conn->query("SELECT * FROM categories"); 
-include '../includes/header.php';
 ?>
 
 <div class="container">
