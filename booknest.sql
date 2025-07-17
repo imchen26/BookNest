@@ -1,92 +1,36 @@
-DROP DATABASE IF EXISTS booknest;
-CREATE DATABASE booknest;
-USE booknest;
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jul 17, 2025 at 02:23 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
--- Users Table
-CREATE TABLE users (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100),
-    role ENUM('Admin', 'Staff', 'Customer') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
--- Categories
-CREATE TABLE categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
 
--- Books
-CREATE TABLE books (
-    book_id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    author VARCHAR(255),
-    price DECIMAL(10, 2) NOT NULL,
-    stock INT DEFAULT 0,
-    category_id INT,
-    is_featured BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
-);
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
--- Orders
-CREATE TABLE orders (
-    order_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('Pending', 'Processing', 'Shipped', 'Completed', 'Cancelled') DEFAULT 'Pending',
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
-);
-
--- Order Items
-CREATE TABLE order_items (
-    item_id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT,
-    book_id INT,
-    quantity INT,
-    price DECIMAL(10, 2),
-    FOREIGN KEY (order_id) REFERENCES orders(order_id),
-    FOREIGN KEY (book_id) REFERENCES books(book_id)
-);
-
--- Currency Table
-CREATE TABLE currencies (
-    currency_id INT AUTO_INCREMENT PRIMARY KEY,
-    currency_code VARCHAR(10) NOT NULL,
-    exchange_rate DECIMAL(10, 4) NOT NULL  -- relative to PHP
-);
-
--- Cart Table
-CREATE TABLE cart (
-    cart_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    book_id INT,
-    quantity INT,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (book_id) REFERENCES books(book_id)
-);
-
--- Sample Procedures
+--
+-- Database: `booknest`
+--
 
 DELIMITER $$
-
-CREATE PROCEDURE AddBook(
-    IN p_title VARCHAR(255), IN p_author VARCHAR(255), IN p_price DECIMAL(10,2),
-    IN p_stock INT, IN p_category_id INT, IN p_is_featured BOOLEAN
-)
-BEGIN
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBook` (IN `p_title` VARCHAR(255), IN `p_author` VARCHAR(255), IN `p_price` DECIMAL(10,2), IN `p_stock` INT, IN `p_category_id` INT, IN `p_is_featured` BOOLEAN)   BEGIN
     INSERT INTO books(title, author, price, stock, category_id, is_featured)
     VALUES(p_title, p_author, p_price, p_stock, p_category_id, p_is_featured);
 END$$
 
-CREATE PROCEDURE UpdateBookStock(IN p_book_id INT, IN p_stock INT)
-BEGIN
-    UPDATE books SET stock = p_stock WHERE book_id = p_book_id;
-END$$
-
-CREATE PROCEDURE PlaceOrder(IN p_user_id INT)
-BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `PlaceOrder` (IN `p_user_id` INT)   BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE c_book_id INT;
     DECLARE c_quantity INT;
@@ -121,31 +65,366 @@ BEGIN
     COMMIT;
 END$$
 
--- Sample Triggers
-
-CREATE TRIGGER trg_reduce_stock BEFORE INSERT ON order_items
-FOR EACH ROW
-BEGIN
-    IF (SELECT stock FROM books WHERE book_id = NEW.book_id) < NEW.quantity THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Not enough stock';
-    END IF;
-END$$
-
-CREATE TRIGGER trg_log_signup AFTER INSERT ON users
-FOR EACH ROW
-BEGIN
-    INSERT INTO logs(action, description, created_at)
-    VALUES('SIGNUP', CONCAT('New user ', NEW.username, ' registered.'), NOW());
+CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateBookStock` (IN `p_book_id` INT, IN `p_stock` INT)   BEGIN
+    UPDATE books SET stock = p_stock WHERE book_id = p_book_id;
 END$$
 
 DELIMITER ;
 
--- Sample Data
-INSERT INTO categories(name) VALUES ('Fiction'), ('Non-Fiction'), ('Science'), ('Children'), ('Business'), ('Mystery');
+-- --------------------------------------------------------
 
-INSERT INTO currencies(currency_code, exchange_rate) VALUES
-('PHP', 1.0000),
-('USD', 0.0180),
-('KRW', 23.50);
+--
+-- Table structure for table `books`
+--
 
+CREATE TABLE `books` (
+  `book_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `author` varchar(255) DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `stock` int(11) DEFAULT 0,
+  `category_id` int(11) DEFAULT NULL,
+  `is_featured` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `books`
+--
+
+INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_id`, `is_featured`) VALUES
+(1, 'The Alchemist', 'Paulo Coelho', 499.00, 10, 1, 1),
+(2, 'A Brief History of Time', 'Stephen Hawking', 650.00, 8, 3, 0),
+(3, 'Rich Dad Poor Dad', 'Robert Kiyosaki', 550.00, 12, 5, 1),
+(4, 'Harry Potter and the Sorcerer\'s Stone', 'J.K. Rowling', 450.00, 15, 4, 1),
+(5, 'The Lean Startup', 'Eric Ries', 720.00, 7, 5, 0),
+(6, 'Sherlock Holmes', 'Arthur Conan Doyle', 380.00, 5, 6, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart`
+--
+
+CREATE TABLE `cart` (
+  `cart_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `book_id` int(11) DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`cart_id`, `user_id`, `book_id`, `quantity`) VALUES
+(4, 7, 1, 2),
+(5, 7, 3, 1),
+(6, 8, 4, 1),
+(7, 8, 2, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE `categories` (
+  `category_id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `name`) VALUES
+(1, 'Fiction'),
+(2, 'Non-Fiction'),
+(3, 'Science'),
+(4, 'Children'),
+(5, 'Business'),
+(6, 'Mystery');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `currencies`
+--
+
+CREATE TABLE `currencies` (
+  `currency_id` int(11) NOT NULL,
+  `currency_code` varchar(10) NOT NULL,
+  `exchange_rate` decimal(10,4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `currencies`
+--
+
+INSERT INTO `currencies` (`currency_id`, `currency_code`, `exchange_rate`) VALUES
+(1, 'PHP', 1.0000),
+(2, 'USD', 0.0180),
+(3, 'KRW', 23.5000);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `logs`
+--
+
+CREATE TABLE `logs` (
+  `log_id` int(11) NOT NULL,
+  `action` varchar(50) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `logs`
+--
+
+INSERT INTO `logs` (`log_id`, `action`, `description`, `created_at`) VALUES
+(1, 'SIGNUP', 'New user admin1 registered.', '2025-07-17 12:20:48'),
+(2, 'SIGNUP', 'New user staff1 registered.', '2025-07-17 12:20:48'),
+(3, 'SIGNUP', 'New user cust1 registered.', '2025-07-17 12:20:48'),
+(4, 'SIGNUP', 'New user cust2 registered.', '2025-07-17 12:20:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `order_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`) VALUES
+(1, 7, '2025-07-17 12:22:43', 'completed'),
+(2, 8, '2025-07-17 12:22:43', 'pending');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `item_id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `book_id` int(11) DEFAULT NULL,
+  `quantity` int(11) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `price`) VALUES
+(1, 1, 1, 2, 499.00),
+(2, 1, 3, 1, 550.00),
+(3, 2, 4, 1, 450.00),
+(4, 2, 2, 1, 650.00);
+
+--
+-- Triggers `order_items`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_reduce_stock` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
+    IF (SELECT stock FROM books WHERE book_id = NEW.book_id) < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Not enough stock';
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `user_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `role` enum('admin','staff','customer') NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `created_at`) VALUES
+(5, 'admin', 'adminpass', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48'),
+(6, 'staff', 'staffpass', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48'),
+(7, 'cust1', 'custpass', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
+(8, 'cust2', 'custpass', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
+
+--
+-- Triggers `users`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
+    INSERT INTO logs(action, description, created_at)
+    VALUES('SIGNUP', CONCAT('New user ', NEW.username, ' registered.'), NOW());
+END
+$$
+DELIMITER ;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `books`
+--
+ALTER TABLE `books`
+  ADD PRIMARY KEY (`book_id`),
+  ADD KEY `category_id` (`category_id`);
+
+--
+-- Indexes for table `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`cart_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indexes for table `currencies`
+--
+ALTER TABLE `currencies`
+  ADD PRIMARY KEY (`currency_id`);
+
+--
+-- Indexes for table `logs`
+--
+ALTER TABLE `logs`
+  ADD PRIMARY KEY (`log_id`);
+
+--
+-- Indexes for table `orders`
+--
+ALTER TABLE `orders`
+  ADD PRIMARY KEY (`order_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD PRIMARY KEY (`item_id`),
+  ADD KEY `order_id` (`order_id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `books`
+--
+ALTER TABLE `books`
+  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `currencies`
+--
+ALTER TABLE `currencies`
+  MODIFY `currency_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `logs`
+--
+ALTER TABLE `logs`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `order_items`
+--
+ALTER TABLE `order_items`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `books`
+--
+ALTER TABLE `books`
+  ADD CONSTRAINT `books_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
+
+--
+-- Constraints for table `cart`
+--
+ALTER TABLE `cart`
+  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
+
+--
+-- Constraints for table `orders`
+--
+ALTER TABLE `orders`
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+
+--
+-- Constraints for table `order_items`
+--
+ALTER TABLE `order_items`
+  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

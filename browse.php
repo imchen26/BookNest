@@ -32,7 +32,7 @@ $books_result = $books_query->get_result();
         <?php while ($book = $books_result->fetch_assoc()): ?>
             <div class="book-card">
                 <h4><?php echo $book['title']; ?></h4>
-                <p>by <?php echo $book['author']; ?></p>、、、、7
+                <p>by <?php echo $book['author']; ?></p>
                 <p>₱<?php echo number_format($book['price'], 2); ?></p>
                 <form method="post" action="cart.php">
                     <input type="hidden" name="book_id" value="<?php echo $book['book_id']; ?>">
