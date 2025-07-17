@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/db.php';
 $page_css = '/BookNest/css/orders.css';
+include '../includes/header.php';
 
 if ($_SESSION['role'] != 'staff') {
     header("Location: ../login.php");
@@ -15,8 +16,14 @@ if (isset($_POST['update_status'])) {
     $stmt->execute();
 }
 
-$result = $conn->query("SELECT * FROM orders ORDER BY created_at DESC"); 
-include '../includes/header.php';
+$result = $conn->query("
+    SELECT o.order_id, o.user_id, o.status, o.order_date,
+           IFNULL(SUM(oi.price * oi.quantity), 0) AS total_amount
+    FROM orders o
+    LEFT JOIN order_items oi ON o.order_id = oi.order_id
+    GROUP BY o.order_id
+    ORDER BY o.order_date DESC
+");
 ?>
 
 <div class="container">
