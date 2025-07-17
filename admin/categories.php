@@ -10,7 +10,7 @@ if ($_SESSION['role'] != 'admin') {
 
 if (isset($_POST['add_category'])) {
     $name = $_POST['category_name'];
-    $stmt = $conn->prepare("INSERT INTO categories (category_name) VALUES (?)");
+    $stmt = $conn->prepare("INSERT INTO categories (name) VALUES (?)");
     $stmt->bind_param("s", $name);
     $stmt->execute();
 }
@@ -35,7 +35,7 @@ $result = $conn->query("SELECT * FROM categories");
             <tr><th>Category</th><th>Action</th></tr>
             <?php while ($row = $result->fetch_assoc()): ?>
                 <tr>
-                    <td><?php echo $row['category_name']; ?></td>
+                    <td><?php echo $row['name']; ?></td>
                     <td><a href="?delete=<?php echo $row['category_id']; ?>">Delete</a></td>
                 </tr>
             <?php endwhile; ?>
