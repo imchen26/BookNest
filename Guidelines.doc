@@ -89,3 +89,8 @@ Browser (localhost)	|  View & test the app
 
 -----------------------------------------------------------------------------------------------
 Commands & Setup:
+
+A. Port 3306 not working
+    1. Open Task Manager → go to Details tab → look for mysqld.exe.
+    2. If you see it, right-click → End Task.
+    3. Then go back to XAMPP and try starting MySQL.

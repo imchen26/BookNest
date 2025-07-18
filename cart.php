@@ -65,7 +65,11 @@ $total = 0;
 
             <div class="cart-summary">
                 <p><strong>Total: ₱<?php echo number_format($total, 2); ?></strong></p>
-                <a href="order.php" class="checkout-btn">Proceed to Checkout</a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="order.php" class="checkout-btn">Proceed to Checkout</a>
+                <?php else: ?>
+                    <a href="login.php" class="checkout-btn" onclick="alert('Please log in to proceed to checkout.');">Login to Checkout</a>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
