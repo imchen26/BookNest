@@ -270,7 +270,7 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (8, 9, 2, 1, 650.00);
 
 --
--- Triggers `order_items`
+-- Triggers `order_items` (Trigger 1)
 --
 DELIMITER $$
 CREATE TRIGGER `trg_reduce_stock` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
@@ -298,7 +298,7 @@ CREATE TABLE `transaction_log` (
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Trigger: after_order_insert
+-- Trigger: after_order_insert (Trigger 2)
 DELIMITER $$
 
 CREATE TRIGGER `after_order_insert`
@@ -325,7 +325,36 @@ DELIMITER ;
 
 
 -- --------------------------------------------------------
+--
+-- Table structure for table `book_stock_log`
+-- For when stock of a book is changed
 
+CREATE TABLE `book_stock_log` (
+  `log_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `book_id` INT(11),
+  `title` VARCHAR(255),
+  `old_stock` INT,
+  `new_stock` INT,
+  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`),
+  FOREIGN KEY (`book_id`) REFERENCES `books`(`book_id`)
+);
+
+-- Trigger: after_update_book_stock
+DELIMITER $$
+CREATE TRIGGER `after_update_book_stock`
+AFTER UPDATE ON `books`
+FOR EACH ROW
+BEGIN
+  IF NOT OLD.stock <=> NEW.stock THEN
+    INSERT INTO `book_stock_log` (`book_id`, `title`, `old_stock`, `new_stock`, `updated_at`)
+    VALUES (NEW.book_id, NEW.title, OLD.stock, NEW.stock, NOW());
+  END IF;
+END $$
+DELIMITER ;
+
+
+-- --------------------------------------------------------
 --
 -- Table structure for table `users`
 --
@@ -359,6 +388,8 @@ CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
 END
 $$
 DELIMITER ;
+
+-- -----------------------------------------------------
 
 --
 -- Indexes for dumped tables
@@ -511,3 +542,37 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- ----------------------------------------------------
+--
+-- Stored Function fot Currency Handling
+--
+
+CREATE TABLE `user_currency_preference` (
+  `user_id` INT(11) NOT NULL,
+  `currency_id` INT(11) NOT NULL,
+  PRIMARY KEY (`user_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`),
+  FOREIGN KEY (`currency_id`) REFERENCES `currencies`(`currency_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- stored function to convert price according to the currency preference
+DELIMITER $$
+
+CREATE FUNCTION `ConvertPrice`(
+  p_price DECIMAL(10,2),
+  p_user_id INT
+) RETURNS DECIMAL(10,2)
+DETERMINISTIC
+BEGIN
+  DECLARE rate DECIMAL(10,4);
+  SELECT c.exchange_rate INTO rate
+  FROM user_currency_preference ucp
+  JOIN currencies c ON ucp.currency_id = c.currency_id
+  WHERE ucp.user_id = p_user_id;
+  
+  RETURN p_price * rate;
+END $$
+
+DELIMITER ;
