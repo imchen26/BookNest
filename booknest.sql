@@ -284,6 +284,48 @@ DELIMITER ;
 
 -- --------------------------------------------------------
 
+-- Table structure for table `transaction_log`
+--
+
+CREATE TABLE `transaction_log` (
+  `log_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `order_id` INT(11) NOT NULL,
+  `payment_method` VARCHAR(50) DEFAULT 'Unknown',
+  `payment_status` VARCHAR(50) DEFAULT 'Pending',
+  `amount` DECIMAL(10,2) DEFAULT 0.00,
+  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`),
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Trigger: after_order_insert
+DELIMITER $$
+
+CREATE TRIGGER `after_order_insert`
+AFTER INSERT ON `orders`
+FOR EACH ROW
+BEGIN
+  INSERT INTO `transaction_log` (
+    `order_id`,
+    `payment_method`,
+    `payment_status`,
+    `amount`,
+    `timestamp`
+  )
+  VALUES (
+    NEW.order_id,
+    'Unknown',
+    'Pending',
+    NEW.total_amount,
+    NOW()
+  );
+END $$
+
+DELIMITER ;
+
+
+-- --------------------------------------------------------
+
 --
 -- Table structure for table `users`
 --
@@ -428,6 +470,12 @@ ALTER TABLE `order_items`
 --
 ALTER TABLE `users`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+-- 
+-- AUTO_INCREMENT for table `transaction_log`
+--
+ALTER TABLE `transaction_log`
+  MODIFY `log_id` INT(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
