@@ -149,7 +149,7 @@ CREATE TABLE book_stock_log (
     ON UPDATE CASCADE
 );
 
---
+-- Trigger 1:
 -- Triggers `books`
 --
 DELIMITER $$
@@ -247,6 +247,7 @@ INSERT INTO `currencies` (`currency_id`, `currency_code`, `exchange_rate`) VALUE
 CREATE TABLE `logs` (
   `log_id` int(11) NOT NULL,
   `action` varchar(50) DEFAULT NULL,
+  `name` varchar (50) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -286,7 +287,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (11, 7, '2025-07-25 04:43:48', 'pending', 650.00),
 (12, 7, '2025-07-25 04:45:01', 'pending', 550.00);
 
---
+-- TriSgger 2:
 -- Triggers `orders`
 --
 DELIMITER $$
@@ -341,7 +342,7 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (9, 11, 2, 1, 650.00),
 (10, 12, 3, 1, 550.00);
 
---
+-- Trigger 3:
 -- Triggers `order_items`
 --
 DELIMITER $$
@@ -412,7 +413,7 @@ CREATE TABLE trg_log_signup (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
---
+-- Trigger 4: 
 -- Triggers `users`
 --
 
@@ -618,3 +619,122 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+-- ---------------------------------------------------------
+-- MORE TRIGGERS:
+
+-- Trigger 5:
+-- Trigger to Auto-calculate subtotal in order_items
+DELIMITER $$
+
+CREATE TRIGGER trg_calculate_subtotal
+BEFORE INSERT ON order_items
+FOR EACH ROW
+BEGIN
+  DECLARE book_price DECIMAL(10,2);
+  SELECT price INTO book_price FROM books WHERE book_id = NEW.book_id;
+  SET NEW.subtotal = book_price * NEW.quantity;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 6:
+-- Auto-update total_amount in orders after inserting order items
+DELIMITER $$
+
+CREATE TRIGGER trg_update_order_total
+AFTER INSERT ON order_items
+FOR EACH ROW
+BEGIN
+  UPDATE orders
+  SET total_amount = (
+    SELECT SUM(subtotal)
+    FROM order_items
+    WHERE order_id = NEW.order_id
+  )
+  WHERE order_id = NEW.order_id;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 7:
+-- Log Order Status Changes
+DELIMITER $$
+
+CREATE TRIGGER trg_log_order_status
+AFTER UPDATE ON orders
+FOR EACH ROW
+BEGIN
+  IF NOT OLD.status <=> NEW.status THEN
+    INSERT INTO logs (action, username, description, created_at)
+    VALUES (
+      'ORDER_STATUS_CHANGE',
+      NULL,
+      CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
+      NOW()
+    );
+  END IF;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 8:
+-- Create an audit trail when a user is deleted.
+DELIMITER $$
+
+CREATE TRIGGER trg_log_user_delete
+AFTER DELETE ON users
+FOR EACH ROW
+BEGIN
+  INSERT INTO logs (action, username, description, created_at)
+  VALUES (
+    'DELETE_USER',
+    OLD.username,
+    CONCAT('User ', OLD.username, ' has been deleted.'),
+    NOW()
+  );
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 9:
+-- Logging deleted books (stores as archive)
+CREATE TABLE books_archive (
+  book_id INT PRIMARY KEY,
+  title VARCHAR(255),
+  author VARCHAR(255),
+  price DECIMAL(10,2),
+  stock INT,
+  category_id INT,
+  is_featured TINYINT(1),
+  is_digital TINYINT(1),
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_book_delete
+BEFORE DELETE ON books
+FOR EACH ROW
+BEGIN
+  INSERT INTO books_archive (
+    book_id, title, author, price, stock,
+    category_id, is_featured, is_digital, deleted_at
+  )
+  VALUES (
+    OLD.book_id, OLD.title, OLD.author, OLD.price, OLD.stock,
+    OLD.category_id, OLD.is_featured, OLD.is_digital, NOW()
+  );
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 10:
+-- Automatically log a warning when a book’s stock falls below a threshold 
