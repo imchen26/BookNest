@@ -13,7 +13,7 @@ $result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 8");
             <div class="book-card">
                 <h4><?php echo $book['title']; ?></h4>
                 <p>by <?php echo $book['author']; ?></p>
-                <p>₱<?php echo number_format($book['price'], 2); ?></p>
+                <p><?php echo display_price($book['price']); ?></p>
                 <form method="post" action="cart.php">
                     <input type="hidden" name="book_id" value="<?php echo $book['book_id']; ?>">
                     <input type="number" name="quantity" value="1" min="1" required>

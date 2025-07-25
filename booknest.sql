@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 17, 2025 at 04:02 PM
+-- Generation Time: Jul 25, 2025 at 06:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -72,6 +72,21 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateBookStock` (IN `p_book_id` IN
     UPDATE books SET stock = p_stock WHERE book_id = p_book_id;
 END$$
 
+--
+-- Functions
+--
+CREATE DEFINER=`root`@`localhost` FUNCTION `ConvertPrice` (`p_price` DECIMAL(10,2), `p_user_id` INT) RETURNS DECIMAL(10,2) DETERMINISTIC BEGIN
+    DECLARE rate DECIMAL(10,4);
+
+    SELECT c.exchange_rate
+    INTO rate
+    FROM `user_currency_preference` AS ucp
+    JOIN `currencies` AS c ON ucp.currency_id = c.currency_id
+    WHERE ucp.user_id = p_user_id;
+
+    RETURN p_price * IFNULL(rate, 1);
+END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -121,6 +136,19 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (23, 'The Power of Now', 'Eckhart Tolle', 520.00, 6, 13, 1, 1),
 (24, 'Milk and Honey', 'Rupi Kaur', 350.00, 15, 14, 1, 1),
 (25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0);
+
+--
+-- Triggers `books`
+--
+DELIMITER $$
+CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BEGIN
+  IF NOT OLD.stock <=> NEW.stock THEN
+    INSERT INTO `book_stock_log` (`book_id`, `title`, `old_stock`, `new_stock`, `updated_at`)
+    VALUES (NEW.book_id, NEW.title, OLD.stock, NEW.stock, NOW());
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -242,7 +270,32 @@ CREATE TABLE `orders` (
 INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amount`) VALUES
 (1, 7, '2025-07-17 05:10:00', 'pending', 1049.00),
 (2, 8, '2025-07-17 05:12:00', 'pending', 1100.00),
-(9, 7, '2025-07-17 14:01:47', 'pending', 650.00);
+(9, 7, '2025-07-17 14:01:47', 'pending', 650.00),
+(11, 7, '2025-07-25 04:43:48', 'pending', 650.00),
+(12, 7, '2025-07-25 04:45:01', 'pending', 550.00);
+
+--
+-- Triggers `orders`
+--
+DELIMITER $$
+CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
+  INSERT INTO `transaction_log` (
+    `order_id`,
+    `payment_method`,
+    `payment_status`,
+    `amount`,
+    `timestamp`
+  )
+  VALUES (
+    NEW.order_id,
+    'Cash',
+    'Pending',
+    NEW.total_amount,
+    NOW()
+  );
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -267,10 +320,12 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (2, 1, 3, 1, 550.00),
 (3, 2, 2, 1, 650.00),
 (4, 2, 4, 1, 450.00),
-(8, 9, 2, 1, 650.00);
+(8, 9, 2, 1, 650.00),
+(9, 11, 2, 1, 650.00),
+(10, 12, 3, 1, 550.00);
 
 --
--- Triggers `order_items` (Trigger 1)
+-- Triggers `order_items`
 --
 DELIMITER $$
 CREATE TRIGGER `trg_reduce_stock` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
@@ -284,77 +339,29 @@ DELIMITER ;
 
 -- --------------------------------------------------------
 
+--
 -- Table structure for table `transaction_log`
 --
 
 CREATE TABLE `transaction_log` (
-  `log_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `order_id` INT(11) NOT NULL,
-  `payment_method` VARCHAR(50) DEFAULT 'Unknown',
-  `payment_status` VARCHAR(50) DEFAULT 'Pending',
-  `amount` DECIMAL(10,2) DEFAULT 0.00,
-  `timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`log_id`),
-  FOREIGN KEY (`order_id`) REFERENCES `orders`(`order_id`)
+  `log_id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `payment_method` varchar(50) DEFAULT 'Cash',
+  `payment_status` varchar(50) DEFAULT 'Pending',
+  `amount` decimal(10,2) DEFAULT 0.00,
+  `timestamp` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Trigger: after_order_insert (Trigger 2)
-DELIMITER $$
-
-CREATE TRIGGER `after_order_insert`
-AFTER INSERT ON `orders`
-FOR EACH ROW
-BEGIN
-  INSERT INTO `transaction_log` (
-    `order_id`,
-    `payment_method`,
-    `payment_status`,
-    `amount`,
-    `timestamp`
-  )
-  VALUES (
-    NEW.order_id,
-    'Unknown',
-    'Pending',
-    NEW.total_amount,
-    NOW()
-  );
-END $$
-
-DELIMITER ;
-
-
--- --------------------------------------------------------
 --
--- Table structure for table `book_stock_log`
--- For when stock of a book is changed
+-- Dumping data for table `transaction_log`
+--
 
-CREATE TABLE `book_stock_log` (
-  `log_id` INT(11) NOT NULL AUTO_INCREMENT,
-  `book_id` INT(11),
-  `title` VARCHAR(255),
-  `old_stock` INT,
-  `new_stock` INT,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`log_id`),
-  FOREIGN KEY (`book_id`) REFERENCES `books`(`book_id`)
-);
-
--- Trigger: after_update_book_stock
-DELIMITER $$
-CREATE TRIGGER `after_update_book_stock`
-AFTER UPDATE ON `books`
-FOR EACH ROW
-BEGIN
-  IF NOT OLD.stock <=> NEW.stock THEN
-    INSERT INTO `book_stock_log` (`book_id`, `title`, `old_stock`, `new_stock`, `updated_at`)
-    VALUES (NEW.book_id, NEW.title, OLD.stock, NEW.stock, NOW());
-  END IF;
-END $$
-DELIMITER ;
-
+INSERT INTO `transaction_log` (`log_id`, `order_id`, `payment_method`, `payment_status`, `amount`, `timestamp`) VALUES
+(1, 11, 'Cash', 'Pending', 650.00, '2025-07-25 04:43:48'),
+(2, 12, 'Cash', 'Pending', 550.00, '2025-07-25 04:45:01');
 
 -- --------------------------------------------------------
+
 --
 -- Table structure for table `users`
 --
@@ -389,7 +396,23 @@ END
 $$
 DELIMITER ;
 
--- -----------------------------------------------------
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_currency_preference`
+--
+
+CREATE TABLE `user_currency_preference` (
+  `user_id` int(11) NOT NULL,
+  `currency_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_currency_preference`
+--
+
+INSERT INTO `user_currency_preference` (`user_id`, `currency_id`) VALUES
+(7, 2);
 
 --
 -- Indexes for dumped tables
@@ -444,11 +467,25 @@ ALTER TABLE `order_items`
   ADD KEY `book_id` (`book_id`);
 
 --
+-- Indexes for table `transaction_log`
+--
+ALTER TABLE `transaction_log`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`user_id`),
   ADD UNIQUE KEY `username` (`username`);
+
+--
+-- Indexes for table `user_currency_preference`
+--
+ALTER TABLE `user_currency_preference`
+  ADD PRIMARY KEY (`user_id`),
+  ADD KEY `currency_id` (`currency_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -488,25 +525,25 @@ ALTER TABLE `logs`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `transaction_log`
+--
+ALTER TABLE `transaction_log`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
--- 
--- AUTO_INCREMENT for table `transaction_log`
---
-ALTER TABLE `transaction_log`
-  MODIFY `log_id` INT(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -526,53 +563,19 @@ ALTER TABLE `cart`
   ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
 
 --
--- Constraints for table `orders`
+-- Constraints for table `transaction_log`
 --
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+ALTER TABLE `transaction_log`
+  ADD CONSTRAINT `transaction_log_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
 
 --
--- Constraints for table `order_items`
+-- Constraints for table `user_currency_preference`
 --
-ALTER TABLE `order_items`
-  ADD CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  ADD CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
+ALTER TABLE `user_currency_preference`
+  ADD CONSTRAINT `user_currency_preference_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  ADD CONSTRAINT `user_currency_preference_ibfk_2` FOREIGN KEY (`currency_id`) REFERENCES `currencies` (`currency_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-
--- ----------------------------------------------------
---
--- Stored Function fot Currency Handling
---
-
-CREATE TABLE `user_currency_preference` (
-  `user_id` INT(11) NOT NULL,
-  `currency_id` INT(11) NOT NULL,
-  PRIMARY KEY (`user_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`),
-  FOREIGN KEY (`currency_id`) REFERENCES `currencies`(`currency_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- stored function to convert price according to the currency preference
-DELIMITER $$
-
-CREATE FUNCTION `ConvertPrice`(
-  p_price DECIMAL(10,2),
-  p_user_id INT
-) RETURNS DECIMAL(10,2)
-DETERMINISTIC
-BEGIN
-  DECLARE rate DECIMAL(10,4);
-  SELECT c.exchange_rate INTO rate
-  FROM user_currency_preference ucp
-  JOIN currencies c ON ucp.currency_id = c.currency_id
-  WHERE ucp.user_id = p_user_id;
-  
-  RETURN p_price * rate;
-END $$
-
-DELIMITER ;

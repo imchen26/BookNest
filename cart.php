@@ -1,4 +1,4 @@
-<?php 
+<?php  
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/cart.css';
 include 'includes/header.php';
@@ -46,7 +46,7 @@ $total = 0;
                         $result = $stmt->get_result();
                         $book = $result->fetch_assoc();
 
-                        if (!$book) continue; // If book not found, skip
+                        if (!$book) continue;
 
                         $subtotal = $book['price'] * $qty;
                         $total += $subtotal;
@@ -54,7 +54,7 @@ $total = 0;
                     <tr>
                         <td><?php echo htmlspecialchars($book['title']); ?></td>
                         <td><?php echo $qty; ?></td>
-                        <td>₱<?php echo number_format($subtotal, 2); ?></td>
+                        <td><?php echo display_price($subtotal); ?></td>
                         <td>
                             <a href="?remove=<?php echo $book_id; ?>" class="remove-btn" onclick="return confirm('Remove this item from cart?');">Remove</a>
                         </td>
@@ -64,7 +64,7 @@ $total = 0;
             </table>
 
             <div class="cart-summary">
-                <p><strong>Total: ₱<?php echo number_format($total, 2); ?></strong></p>
+                <p><strong>Total: <?php echo display_price($total); ?></strong></p>
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <a href="order.php" class="checkout-btn">Proceed to Checkout</a>
                 <?php else: ?>

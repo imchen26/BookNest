@@ -14,7 +14,7 @@ body {
     margin-bottom: 20px;
 }
 
-form select {
+.container form select {
     padding: 10px 12px;
     font-size: 1rem;
     border-radius: 8px;

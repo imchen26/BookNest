@@ -33,7 +33,7 @@ $result = $stmt->get_result();
         <h2>📦 Your Orders</h2>
         <?php while ($row = $result->fetch_assoc()): ?>
             <div class="order-block">
-                <strong>Order #<?php echo $row['order_id']; ?></strong> - ₱<?php echo number_format($row['total_price'], 2); ?>
+                <strong>Order #<?php echo $row['order_id']; ?></strong> - <?php echo display_price($row['total_price']); ?>
                 <br>Status: <?php echo ucfirst($row['status']); ?>
                 <br><small>Placed on: <?php echo $row['order_date']; ?></small>
             </div>
