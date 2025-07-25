@@ -96,7 +96,7 @@ DELIMITER ;
 --
 
 CREATE TABLE `books` (
-  `book_id` int(11) NOT NULL,
+  `book_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `title` varchar(255) NOT NULL,
   `author` varchar(255) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
@@ -136,6 +136,18 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (23, 'The Power of Now', 'Eckhart Tolle', 520.00, 6, 13, 1, 1),
 (24, 'Milk and Honey', 'Rupi Kaur', 350.00, 15, 14, 1, 1),
 (25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0);
+
+CREATE TABLE book_stock_log (
+  log_id INT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  old_stock INT NOT NULL,
+  new_stock INT NOT NULL,
+  updated_at DATETIME NOT NULL,
+  FOREIGN KEY (book_id) REFERENCES books(book_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
 
 --
 -- Triggers `books`
@@ -256,7 +268,7 @@ INSERT INTO `logs` (`log_id`, `action`, `description`, `created_at`) VALUES
 --
 
 CREATE TABLE `orders` (
-  `order_id` int(11) NOT NULL,
+  `order_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending',
@@ -278,13 +290,17 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 -- Triggers `orders`
 --
 DELIMITER $$
-CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
-  INSERT INTO `transaction_log` (
-    `order_id`,
-    `payment_method`,
-    `payment_status`,
-    `amount`,
-    `timestamp`
+
+CREATE TRIGGER after_order_insert
+AFTER INSERT ON orders
+FOR EACH ROW
+BEGIN
+  INSERT INTO transaction_log (
+    order_id,
+    payment_method,
+    payment_status,
+    amount,
+    timestamp
   )
   VALUES (
     NEW.order_id,
@@ -293,9 +309,10 @@ CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
     NEW.total_amount,
     NOW()
   );
-END
-$$
+END$$
+
 DELIMITER ;
+
 
 -- --------------------------------------------------------
 
@@ -344,7 +361,7 @@ DELIMITER ;
 --
 
 CREATE TABLE `transaction_log` (
-  `log_id` int(11) NOT NULL,
+  `log_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `order_id` int(11) NOT NULL,
   `payment_method` varchar(50) DEFAULT 'Cash',
   `payment_status` varchar(50) DEFAULT 'Pending',
@@ -385,15 +402,37 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `create
 (7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
 (8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
 
+-- 
+-- Table for signup log
+--
+CREATE TABLE trg_log_signup (
+  log_id INT AUTO_INCREMENT PRIMARY KEY,
+  action VARCHAR(50) NOT NULL,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 --
 -- Triggers `users`
 --
+
+
 DELIMITER $$
-CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
-    INSERT INTO logs(action, description, created_at)
-    VALUES('SIGNUP', CONCAT('New user ', NEW.username, ' registered.'), NOW());
+
+CREATE TRIGGER trg_log_signup
+AFTER INSERT ON users
+FOR EACH ROW
+BEGIN
+  INSERT INTO logs (action, username, description, created_at)
+  VALUES (
+    'SIGNUP',
+    NEW.username,
+    CONCAT('New user ', NEW.username, ' registered.'),
+    NOW()
+  );
 END
 $$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
