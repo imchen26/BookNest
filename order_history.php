@@ -1,4 +1,4 @@
-<?php 
+<?php  
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/order_history.css';
 include 'includes/header.php';
@@ -68,10 +68,9 @@ $result = $stmt->get_result();
                             </button>
                         <?php endif; ?>
                         <?php if ($row['status'] == 'pending' || $row['status'] == 'processing'): ?>
-                            <form method="post" action="order_history.php">
-                                <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
-                                <button type="submit" name="cancel_order" class="cancel-btn">Cancel Order</button>
-                            </form>
+                            <button type="button" class="cancel-btn" data-order-id="<?php echo $row['order_id']; ?>">
+                                Cancel Order
+                            </button>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
@@ -82,6 +81,7 @@ $result = $stmt->get_result();
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // Handle "Receive Order"
     document.querySelectorAll(".receive-btn").forEach(button => {
         button.addEventListener("click", function() {
             const orderId = this.getAttribute("data-order-id");
@@ -93,22 +93,40 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update wallet display
-                    const walletElement = document.querySelector(".wallet-balance");
-                    if (walletElement) {
-                        walletElement.textContent = "💰 ₱" + data.new_wallet;
-                    }
-                     // Update order status instantly
                     const orderBlock = this.closest(".order-block");
                     orderBlock.querySelector(".order-status-text").textContent = "Completed";
-
-                    // Remove old status classes and add 'completed'
                     orderBlock.classList.remove("pending", "shipped", "processing", "cancelled");
                     orderBlock.classList.add("completed");
-
                     this.remove();
                 } else {
                     alert(data.message || "Failed to update order.");
+                }
+            })
+            .catch(() => alert("Error communicating with server."));
+        });
+    });
+
+    // Handle "Cancel Order"
+    document.querySelectorAll(".cancel-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            const orderId = this.getAttribute("data-order-id");
+            if (!confirm("Are you sure you want to cancel this order?")) return;
+
+            fetch("cancel_order.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "order_id=" + orderId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const orderBlock = this.closest(".order-block");
+                    orderBlock.querySelector(".order-status-text").textContent = "Cancelled";
+                    orderBlock.classList.remove("pending", "shipped", "processing", "completed");
+                    orderBlock.classList.add("cancelled");
+                    this.remove();
+                } else {
+                    alert(data.message || "Failed to cancel order.");
                 }
             })
             .catch(() => alert("Error communicating with server."));
