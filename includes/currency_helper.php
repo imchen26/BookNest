@@ -3,11 +3,9 @@ if (!function_exists('display_price')) {
     function display_price($price) {
         global $conn;
 
-        // If the user is logged in, use ConvertPrice() from MySQL
         if (!empty($_SESSION['user_id'])) {
             $userId = $_SESSION['user_id'];
 
-            // Call the stored function
             $stmt = $conn->prepare("SELECT ConvertPrice(?, ?) AS converted");
             $stmt->bind_param("di", $price, $userId);
             $stmt->execute();
@@ -15,7 +13,6 @@ if (!function_exists('display_price')) {
             $row = $result->fetch_assoc();
             $converted = $row['converted'] ?? $price;
 
-            // Get currency code for the user's preference
             $codeStmt = $conn->prepare("SELECT c.currency_code 
                                         FROM user_currency_preference ucp
                                         JOIN currencies c ON ucp.currency_id = c.currency_id
@@ -29,7 +26,6 @@ if (!function_exists('display_price')) {
             return $currencyCode . ' ' . number_format($converted, 2);
         }
 
-        // If user not logged in, use session currency_id (default to PHP)
         $currencyId = $_SESSION['currency_id'] ?? 1;
         $stmt = $conn->prepare("SELECT exchange_rate, currency_code FROM currencies WHERE currency_id = ?");
         $stmt->bind_param("i", $currencyId);
