@@ -3,14 +3,12 @@ session_start();
 require_once 'includes/db.php';
 require_once __DIR__ . '/currency_helper.php';
 
-// Load all currencies with exchange rates
 $currencies = [];
 $currencyQuery = $conn->query("SELECT currency_id, currency_code, exchange_rate FROM currencies");
 if ($currencyQuery) {
     $currencies = $currencyQuery->fetch_all(MYSQLI_ASSOC);
 }
 
-// Handle currency selection change
 if (isset($_POST['currency_id'])) {
     $_SESSION['currency_id'] = (int)$_POST['currency_id'];
     $selectedCurrencyId = $_SESSION['currency_id'];
@@ -26,7 +24,6 @@ if (isset($_POST['currency_id'])) {
     exit;
 }
 
-// Load user preference if logged in
 if (isset($_SESSION['user_id']) && !isset($_SESSION['currency_id'])) {
     $uid = $_SESSION['user_id'];
     $prefQuery = $conn->query("SELECT currency_id FROM user_currency_preference WHERE user_id = $uid");
@@ -55,7 +52,6 @@ $currentCurrencyId = $_SESSION['currency_id'] ?? 1;
     <div class="container">
         <h1>📚 BookNest</h1>
 
-        <!-- Currency Selector -->
         <form method="post" class="currency-form">
             <label for="currency_id">Currency:</label>
             <select name="currency_id" id="currency_id" onchange="this.form.submit()">

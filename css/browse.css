@@ -1,6 +1,8 @@
 body {
     background-color: #f4f4f4;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
@@ -12,16 +14,38 @@ body {
 .container h2 {
     color: #010F47;
     margin-bottom: 20px;
+    text-align: center;
 }
 
-.container form select {
+.browse-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.browse-filter-form input[type="text"],
+.browse-filter-form select,
+.browse-filter-form button {
     padding: 10px 12px;
     font-size: 1rem;
     border-radius: 8px;
     border: 1px solid #ccc;
-    margin-bottom: 30px;
     background-color: #fff;
     color: #333;
+}
+
+.browse-filter-form button {
+    background: #010F47;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.browse-filter-form button:hover {
+    background: #0d1a70;
 }
 
 .grid {
@@ -31,11 +55,14 @@ body {
 }
 
 .book-card {
-    background-color: #fff;
+    background: #fff;
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .book-card:hover {
@@ -46,10 +73,19 @@ body {
     font-size: 1.2rem;
     color: #010F47;
     margin-bottom: 10px;
+    min-height: 50px;
 }
 
 .book-card p {
     margin: 5px 0;
+    color: #555;
+}
+
+.rating {
+    margin: 10px 0;
+    color: #FFD700;
+    font-size: 1rem;
+    letter-spacing: 1px;
 }
 
 .book-card input[type="number"] {
@@ -59,6 +95,7 @@ body {
     border: 1px solid #ccc;
     border-radius: 6px;
     margin-right: 10px;
+    margin-top: 10px;
 }
 
 .book-card button {
@@ -70,9 +107,34 @@ body {
     cursor: pointer;
     font-size: 0.95rem;
     transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
 .book-card button:hover {
     background-color: #0d1a70;
 }
 
+.pagination {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #010F47;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.pagination a.active {
+    background: #010F47;
+    color: white;
+}
+
+.pagination a:hover {
+    background: #0d1a70;
+    color: white;
+}

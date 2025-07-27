@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 02:42 PM
+-- Generation Time: Jul 27, 2025 at 03:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -96,7 +96,7 @@ DELIMITER ;
 --
 
 CREATE TABLE `books` (
-  `book_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  `book_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `author` varchar(255) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
@@ -137,19 +137,7 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (24, 'Milk and Honey', 'Rupi Kaur', 350.00, 15, 14, 1, 1),
 (25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0);
 
-CREATE TABLE book_stock_log (
-  log_id INT AUTO_INCREMENT PRIMARY KEY,
-  book_id INT NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  old_stock INT NOT NULL,
-  new_stock INT NOT NULL,
-  updated_at DATETIME NOT NULL,
-  FOREIGN KEY (book_id) REFERENCES books(book_id)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE
-);
-
--- Trigger 1:
+--
 -- Triggers `books`
 --
 DELIMITER $$
@@ -247,7 +235,6 @@ INSERT INTO `currencies` (`currency_id`, `currency_code`, `exchange_rate`) VALUE
 CREATE TABLE `logs` (
   `log_id` int(11) NOT NULL,
   `action` varchar(50) DEFAULT NULL,
-  `name` varchar (50) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -269,7 +256,7 @@ INSERT INTO `logs` (`log_id`, `action`, `description`, `created_at`) VALUES
 --
 
 CREATE TABLE `orders` (
-  `order_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  `order_id` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` enum('pending','processing','shipped','completed','cancelled') DEFAULT 'pending',
@@ -287,21 +274,17 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (11, 7, '2025-07-25 04:43:48', 'pending', 650.00),
 (12, 7, '2025-07-25 04:45:01', 'pending', 550.00);
 
--- TriSgger 2:
+--
 -- Triggers `orders`
 --
 DELIMITER $$
-
-CREATE TRIGGER after_order_insert
-AFTER INSERT ON orders
-FOR EACH ROW
-BEGIN
-  INSERT INTO transaction_log (
-    order_id,
-    payment_method,
-    payment_status,
-    amount,
-    timestamp
+CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
+  INSERT INTO `transaction_log` (
+    `order_id`,
+    `payment_method`,
+    `payment_status`,
+    `amount`,
+    `timestamp`
   )
   VALUES (
     NEW.order_id,
@@ -310,10 +293,9 @@ BEGIN
     NEW.total_amount,
     NOW()
   );
-END$$
-
+END
+$$
 DELIMITER ;
-
 
 -- --------------------------------------------------------
 
@@ -342,7 +324,7 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (9, 11, 2, 1, 650.00),
 (10, 12, 3, 1, 550.00);
 
--- Trigger 3:
+--
 -- Triggers `order_items`
 --
 DELIMITER $$
@@ -358,11 +340,131 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `reviews`
+--
+
+CREATE TABLE `reviews` (
+  `review_id` int(11) NOT NULL,
+  `book_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL CHECK (`rating` between 1 and 5),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reviews`
+--
+
+INSERT INTO `reviews` (`review_id`, `book_id`, `rating`, `created_at`) VALUES
+(1, 1, 5, '2025-07-27 12:53:13'),
+(2, 1, 4, '2025-07-27 12:53:13'),
+(3, 2, 3, '2025-07-27 12:53:13'),
+(4, 3, 5, '2025-07-27 12:53:13'),
+(5, 4, 4, '2025-07-27 12:53:13'),
+(6, 4, 5, '2025-07-27 12:53:13'),
+(7, 1, 5, '2025-07-27 13:12:39'),
+(8, 1, 4, '2025-07-27 13:12:39'),
+(9, 1, 3, '2025-07-27 13:12:39'),
+(10, 2, 4, '2025-07-27 13:12:39'),
+(11, 2, 5, '2025-07-27 13:12:39'),
+(12, 2, 2, '2025-07-27 13:12:39'),
+(13, 3, 5, '2025-07-27 13:12:39'),
+(14, 3, 4, '2025-07-27 13:12:39'),
+(15, 4, 5, '2025-07-27 13:12:39'),
+(16, 4, 5, '2025-07-27 13:12:39'),
+(17, 5, 3, '2025-07-27 13:12:39'),
+(18, 5, 4, '2025-07-27 13:12:39'),
+(19, 6, 5, '2025-07-27 13:12:39'),
+(20, 7, 4, '2025-07-27 13:12:39'),
+(21, 7, 5, '2025-07-27 13:12:39'),
+(22, 1, 5, '2025-07-27 13:13:41'),
+(23, 1, 4, '2025-07-27 13:13:41'),
+(24, 1, 3, '2025-07-27 13:13:41'),
+(25, 1, 5, '2025-07-27 13:13:41'),
+(26, 2, 4, '2025-07-27 13:13:41'),
+(27, 2, 5, '2025-07-27 13:13:41'),
+(28, 2, 3, '2025-07-27 13:13:41'),
+(29, 3, 5, '2025-07-27 13:13:41'),
+(30, 3, 4, '2025-07-27 13:13:41'),
+(31, 3, 5, '2025-07-27 13:13:41'),
+(32, 3, 5, '2025-07-27 13:13:41'),
+(33, 4, 5, '2025-07-27 13:13:41'),
+(34, 4, 4, '2025-07-27 13:13:41'),
+(35, 4, 5, '2025-07-27 13:13:41'),
+(36, 5, 3, '2025-07-27 13:13:41'),
+(37, 5, 4, '2025-07-27 13:13:41'),
+(38, 5, 4, '2025-07-27 13:13:41'),
+(39, 6, 5, '2025-07-27 13:13:41'),
+(40, 6, 4, '2025-07-27 13:13:41'),
+(41, 6, 3, '2025-07-27 13:13:41'),
+(42, 7, 4, '2025-07-27 13:13:41'),
+(43, 7, 5, '2025-07-27 13:13:41'),
+(44, 7, 4, '2025-07-27 13:13:41'),
+(45, 8, 5, '2025-07-27 13:13:41'),
+(46, 8, 4, '2025-07-27 13:13:41'),
+(47, 8, 5, '2025-07-27 13:13:41'),
+(48, 8, 5, '2025-07-27 13:13:41'),
+(49, 9, 4, '2025-07-27 13:13:41'),
+(50, 9, 5, '2025-07-27 13:13:41'),
+(51, 9, 3, '2025-07-27 13:13:41'),
+(52, 10, 5, '2025-07-27 13:13:41'),
+(53, 10, 4, '2025-07-27 13:13:41'),
+(54, 10, 4, '2025-07-27 13:13:41'),
+(55, 11, 4, '2025-07-27 13:13:41'),
+(56, 11, 3, '2025-07-27 13:13:41'),
+(57, 11, 5, '2025-07-27 13:13:41'),
+(58, 12, 5, '2025-07-27 13:13:41'),
+(59, 12, 5, '2025-07-27 13:13:41'),
+(60, 12, 4, '2025-07-27 13:13:41'),
+(61, 12, 4, '2025-07-27 13:13:41'),
+(62, 13, 4, '2025-07-27 13:13:41'),
+(63, 13, 3, '2025-07-27 13:13:41'),
+(64, 13, 5, '2025-07-27 13:13:41'),
+(65, 14, 4, '2025-07-27 13:13:41'),
+(66, 14, 5, '2025-07-27 13:13:41'),
+(67, 14, 4, '2025-07-27 13:13:41'),
+(68, 15, 5, '2025-07-27 13:13:41'),
+(69, 15, 4, '2025-07-27 13:13:41'),
+(70, 15, 5, '2025-07-27 13:13:41'),
+(71, 16, 4, '2025-07-27 13:13:41'),
+(72, 16, 5, '2025-07-27 13:13:41'),
+(73, 16, 3, '2025-07-27 13:13:41'),
+(74, 17, 5, '2025-07-27 13:13:41'),
+(75, 17, 4, '2025-07-27 13:13:41'),
+(76, 17, 4, '2025-07-27 13:13:41'),
+(77, 18, 5, '2025-07-27 13:13:41'),
+(78, 18, 3, '2025-07-27 13:13:41'),
+(79, 18, 4, '2025-07-27 13:13:41'),
+(80, 19, 5, '2025-07-27 13:13:41'),
+(81, 19, 4, '2025-07-27 13:13:41'),
+(82, 19, 5, '2025-07-27 13:13:41'),
+(83, 19, 5, '2025-07-27 13:13:41'),
+(84, 20, 4, '2025-07-27 13:13:41'),
+(85, 20, 5, '2025-07-27 13:13:41'),
+(86, 20, 3, '2025-07-27 13:13:41'),
+(87, 21, 5, '2025-07-27 13:13:41'),
+(88, 21, 4, '2025-07-27 13:13:41'),
+(89, 21, 4, '2025-07-27 13:13:41'),
+(90, 22, 4, '2025-07-27 13:13:41'),
+(91, 22, 5, '2025-07-27 13:13:41'),
+(92, 22, 3, '2025-07-27 13:13:41'),
+(93, 23, 5, '2025-07-27 13:13:41'),
+(94, 23, 4, '2025-07-27 13:13:41'),
+(95, 23, 4, '2025-07-27 13:13:41'),
+(96, 24, 4, '2025-07-27 13:13:41'),
+(97, 24, 5, '2025-07-27 13:13:41'),
+(98, 24, 3, '2025-07-27 13:13:41'),
+(99, 25, 5, '2025-07-27 13:13:41'),
+(100, 25, 4, '2025-07-27 13:13:41'),
+(101, 25, 5, '2025-07-27 13:13:41');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `transaction_log`
 --
 
 CREATE TABLE `transaction_log` (
-  `log_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
+  `log_id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
   `payment_method` varchar(50) DEFAULT 'Cash',
   `payment_status` varchar(50) DEFAULT 'Pending',
@@ -403,37 +505,15 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `create
 (7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
 (8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
 
--- 
--- Table for signup log
 --
-CREATE TABLE trg_log_signup (
-  log_id INT AUTO_INCREMENT PRIMARY KEY,
-  action VARCHAR(50) NOT NULL,
-  description TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
--- Trigger 4: 
 -- Triggers `users`
 --
-
-
 DELIMITER $$
-
-CREATE TRIGGER trg_log_signup
-AFTER INSERT ON users
-FOR EACH ROW
-BEGIN
-  INSERT INTO logs (action, username, description, created_at)
-  VALUES (
-    'SIGNUP',
-    NEW.username,
-    CONCAT('New user ', NEW.username, ' registered.'),
-    NOW()
-  );
+CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
+    INSERT INTO logs(action, description, created_at)
+    VALUES('SIGNUP', CONCAT('New user ', NEW.username, ' registered.'), NOW());
 END
 $$
-
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -507,6 +587,13 @@ ALTER TABLE `order_items`
   ADD KEY `book_id` (`book_id`);
 
 --
+-- Indexes for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD PRIMARY KEY (`review_id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
 -- Indexes for table `transaction_log`
 --
 ALTER TABLE `transaction_log`
@@ -574,6 +661,12 @@ ALTER TABLE `order_items`
   MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
+-- AUTO_INCREMENT for table `reviews`
+--
+ALTER TABLE `reviews`
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+
+--
 -- AUTO_INCREMENT for table `transaction_log`
 --
 ALTER TABLE `transaction_log`
@@ -603,6 +696,12 @@ ALTER TABLE `cart`
   ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
 
 --
+-- Constraints for table `reviews`
+--
+ALTER TABLE `reviews`
+  ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `transaction_log`
 --
 ALTER TABLE `transaction_log`
@@ -619,142 +718,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-
-
--- ---------------------------------------------------------
--- MORE TRIGGERS:
-
--- Trigger 5:
--- Trigger to Auto-calculate subtotal in order_items
-DELIMITER $$
-
-CREATE TRIGGER trg_calculate_subtotal
-BEFORE INSERT ON order_items
-FOR EACH ROW
-BEGIN
-  DECLARE book_price DECIMAL(10,2);
-  SELECT price INTO book_price FROM books WHERE book_id = NEW.book_id;
-  SET NEW.subtotal = book_price * NEW.quantity;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 6:
--- Auto-update total_amount in orders after inserting order items
-DELIMITER $$
-
-CREATE TRIGGER trg_update_order_total
-AFTER INSERT ON order_items
-FOR EACH ROW
-BEGIN
-  UPDATE orders
-  SET total_amount = (
-    SELECT SUM(subtotal)
-    FROM order_items
-    WHERE order_id = NEW.order_id
-  )
-  WHERE order_id = NEW.order_id;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 7:
--- Log Order Status Changes
-DELIMITER $$
-
-CREATE TRIGGER trg_log_order_status
-AFTER UPDATE ON orders
-FOR EACH ROW
-BEGIN
-  IF NOT OLD.status <=> NEW.status THEN
-    INSERT INTO logs (action, username, description, created_at)
-    VALUES (
-      'ORDER_STATUS_CHANGE',
-      NULL,
-      CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
-      NOW()
-    );
-  END IF;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 8:
--- Create an audit trail when a user is deleted.
-DELIMITER $$
-
-CREATE TRIGGER trg_log_user_delete
-AFTER DELETE ON users
-FOR EACH ROW
-BEGIN
-  INSERT INTO logs (action, username, description, created_at)
-  VALUES (
-    'DELETE_USER',
-    OLD.username,
-    CONCAT('User ', OLD.username, ' has been deleted.'),
-    NOW()
-  );
-END
-$$
-
-DELIMITER ;
-
--- Trigger 9:
--- Logging deleted books (stores as archive)
-CREATE TABLE books_archive (
-  book_id INT PRIMARY KEY,
-  title VARCHAR(255),
-  author VARCHAR(255),
-  price DECIMAL(10,2),
-  stock INT,
-  category_id INT,
-  is_featured TINYINT(1),
-  is_digital TINYINT(1),
-  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-DELIMITER $$
-
-CREATE TRIGGER trg_book_delete
-BEFORE DELETE ON books
-FOR EACH ROW
-BEGIN
-  INSERT INTO books_archive (
-    book_id, title, author, price, stock,
-    category_id, is_featured, is_digital, deleted_at
-  )
-  VALUES (
-    OLD.book_id, OLD.title, OLD.author, OLD.price, OLD.stock,
-    OLD.category_id, OLD.is_featured, OLD.is_digital, NOW()
-  );
-END
-$$
-
-DELIMITER ;
-
--- Trigger 10:
--- Automatically log a warning when a book’s stock falls below a threshold 
-DELIMITER $$
-
-CREATE TRIGGER trg_low_stock_alert
-AFTER UPDATE ON books
-FOR EACH ROW
-BEGIN
-  -- Fire only if stock decreases and drops below 5
-  IF NEW.stock < 5 AND NEW.stock < OLD.stock THEN
-    INSERT INTO logs (action, name, description, created_at)
-    VALUES (
-      'LOW_STOCK_ALERT',
-      NULL,
-      CONCAT('Book "', NEW.title, '" has low stock (', NEW.stock, ' left).'),
-      NOW()
-    );
-  END IF;
-END
-$$
-
-DELIMITER ;
