@@ -1,6 +1,6 @@
 body {
+    background: linear-gradient(135deg, #010F47 0%, #4B79A1 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f7f7f7;
     color: #333;
     margin: 0;
     padding: 0;
@@ -15,7 +15,7 @@ body {
 .container h2 {
     font-size: 2em;
     margin-bottom: 30px;
-    color: #010F47;
+    color: white;
 }
 
 .grid {

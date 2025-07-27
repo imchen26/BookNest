@@ -1,5 +1,5 @@
 body {
-    background-color: #f7f7f7;
+    background: linear-gradient(135deg, #010F47 0%, #4B79A1 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     margin: 0;
@@ -18,7 +18,8 @@ body {
     padding: 30px;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 .cart-container h2 {
@@ -39,6 +40,9 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 30px;
+    background: #fafafa;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .cart-table th,
@@ -50,15 +54,15 @@ body {
 }
 
 .cart-table th {
-    background-color: #f1f1f1;
-    color: #333;
+    background-color: #010F47;
+    color: #ffffff;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.cart-table img {
-    width: 60px;
-    height: auto;
-    border-radius: 6px;
+.cart-table tr:hover td {
+    background-color: #f1f5ff;
 }
 
 .remove-btn {
@@ -74,7 +78,7 @@ body {
 
 .cart-summary {
     text-align: right;
-    font-size: 1.1em;
+    font-size: 1.2em;
     margin-top: 20px;
     font-weight: 600;
 }
@@ -90,10 +94,16 @@ body {
     font-size: 1em;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
+    transition: background-color 0.3s ease, transform 0.2s ease;
     margin-top: 20px;
 }
 
 .checkout-btn:hover {
-    background-color: #0d1a70;
+    background-color: #003399;
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

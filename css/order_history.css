@@ -1,5 +1,5 @@
 body {
-    background-color: #f4f6f9;
+    background: linear-gradient(135deg, #010F47 0%, #4B79A1 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -21,7 +21,7 @@ body {
 .orderhistory-container h2 {
     grid-column: 1 / -1;
     font-size: 2em;
-    color: #010F47;
+    color: white;
     margin-bottom: 20px;
     text-align: center;
     font-weight: bold;

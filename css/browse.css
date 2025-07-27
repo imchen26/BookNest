@@ -1,5 +1,5 @@
 body {
-    background-color: #f4f4f4;
+    background: linear-gradient(135deg, #010F47 0%, #4B79A1 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
@@ -12,7 +12,7 @@ body {
 }
 
 .container h2 {
-    color: #010F47;
+    color: white;
     margin-bottom: 20px;
     text-align: center;
 }
@@ -142,6 +142,7 @@ body {
     margin: 0 5px;
     padding: 8px 12px;
     text-decoration: none;
+    background: white;
     color: #010F47;
     border: 1px solid #ccc;
     border-radius: 6px;
