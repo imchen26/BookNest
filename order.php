@@ -1,4 +1,4 @@
-<?php 
+<?php  
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/order.css'; 
 include 'includes/header.php'; 
@@ -26,7 +26,7 @@ foreach ($_SESSION['cart'] as $book_id => $qty) {
     $stmt->close();
 }
 
-$stmt = $conn->prepare("INSERT INTO orders (user_id, total_amount) VALUES (?, ?)");
+$stmt = $conn->prepare("INSERT INTO orders (user_id, total_amount, status) VALUES (?, ?, 'pending')");
 $stmt->bind_param("id", $user_id, $total);
 $stmt->execute();
 $order_id = $stmt->insert_id;
@@ -50,10 +50,13 @@ $_SESSION['cart'] = [];
 
 <div class="container">
     <div class="order-container">
-        <h2>✅ Order Placed!</h2>
+        <h2>✅ Order Placed Successfully!</h2>
         <p>Your order ID is <strong>#<?php echo $order_id; ?></strong></p>
         <p>Total Amount: <strong><?php echo display_price($total); ?></strong></p>
-        <a href="order_history.php">View Order History</a>
+        <p>Estimated Delivery: <strong><?php echo date("M d, Y", strtotime("+3 days")); ?></strong></p>
+        <p>Status: <strong>Pending</strong></p>
+
+        <a href="order_history.php" class="history-btn">View Order History</a>
     </div>
 </div>
 

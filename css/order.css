@@ -13,8 +13,8 @@ body {
 }
 
 .order-container {
-    max-width: 600px;
-    margin: 80px auto;
+    max-width: 700px;
+    margin: 60px auto;
     padding: 40px 30px;
     background-color: #ffffff;
     border-radius: 12px;
@@ -29,26 +29,28 @@ body {
 }
 
 .order-container p {
-    font-size: 1.2em;
-    margin-bottom: 30px;
+    font-size: 1.1em;
+    margin-bottom: 15px;
 }
 
 .order-container strong {
     color: #0d1a70;
 }
 
-.order-container a {
+.history-btn {
     display: inline-block;
     background-color: #010F47;
     color: #ffffff;
     text-decoration: none;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 8px;
     font-size: 1em;
     font-weight: bold;
+    margin-top: 20px;
     transition: background-color 0.3s ease;
 }
 
-.order-container a:hover {
+.history-btn:hover {
     background-color: #0a1d78;
 }
+
