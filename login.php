@@ -53,6 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button type="submit">Login</button>
         </form>
+        <form method="post" action="index.php" style="margin-top: 10px;">
+            <button type="submit" name="go_home" class="back-home-btn">Back to Home</button>
+        </form>
         <p class="register-link">Don't have an account? <a href="register.php">Sign up here</a>.</p>
     </div>
 </div>

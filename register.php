@@ -8,6 +8,11 @@ $success = "";
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['go_home'])) {
+        header("Location: index.php");
+        exit;
+    }
+
     $username = trim($_POST['username']);
     $password = password_hash(trim($_POST['password']), PASSWORD_DEFAULT);
     $email = trim($_POST['email']);
@@ -54,7 +59,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button type="submit">Register</button>
         </form>
+        <form method="post" action="" style="margin-top: 10px;">
+            <button type="submit" name="go_home" class="back-home-btn">Back to Home</button>
+        </form>
         <p class="login-link">Already have an account? <a href="login.php">Login here</a>.</p>
     </div>
 </div>
+
 <?php include 'includes/footer.php'; ?>
