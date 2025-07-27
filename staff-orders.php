@@ -69,7 +69,9 @@ $result = $conn->query("
                     <select name="status">
                         <option value="pending" <?php if ($row['status'] == 'pending') echo 'selected'; ?>>Pending</option>
                         <option value="processing" <?php if ($row['status'] == 'processing') echo 'selected'; ?>>Processing</option>
+                        <option value="shipped" <?php if ($row['status'] == 'shipped') echo 'selected'; ?>>Shipped</option>
                         <option value="completed" <?php if ($row['status'] == 'completed') echo 'selected'; ?>>Completed</option>
+                        <option value="cancelled" <?php if ($row['status'] == 'cancelled') echo 'selected'; ?>>Cancelled</option>
                     </select>
                     <button type="submit" name="update_status">Update</button>
                 </form>
