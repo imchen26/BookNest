@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// JOIN with order_items to calculate total price
 $sql = "
     SELECT o.order_id, o.order_date, o.status, 
            COALESCE(SUM(b.price * oi.quantity), 0) AS total_price

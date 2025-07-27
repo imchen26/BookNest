@@ -68,7 +68,7 @@ $books = $conn->query("SELECT * FROM books");
                 <tr>
                     <td><?php echo htmlspecialchars($book['title']); ?></td>
                     <td><?php echo htmlspecialchars($book['author']); ?></td>
-                    <td>₱<?php echo number_format($book['price'], 2); ?></td>
+                    <td><?php echo display_price($book['price']); ?></td>
                     <td><?php echo $book['stock']; ?></td>
                     <td><?php echo $book['is_featured'] ? '✅' : '❌'; ?></td>
                     <td><?php echo $book['is_digital'] ? '📱' : '📕'; ?></td>
