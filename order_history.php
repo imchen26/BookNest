@@ -1,4 +1,4 @@
-<?php
+<?php 
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/order_history.css';
 include 'includes/header.php';
@@ -10,55 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['receive_order'])) {
-        $order_id = $_POST['order_id'];
-
-        // Mark order as completed
-        $stmt = $conn->prepare("UPDATE orders SET status = 'completed' WHERE order_id = ? AND user_id = ?");
-        $stmt->bind_param("ii", $order_id, $user_id);
-        $stmt->execute();
-
-        // Deduct from customer wallet
-        $stmt = $conn->prepare("
-            UPDATE users 
-            SET wallet = CASE 
-                WHEN wallet >= (SELECT total_amount FROM orders WHERE order_id = ?) 
-                THEN wallet - (SELECT total_amount FROM orders WHERE order_id = ?) 
-                ELSE 0.00
-            END 
-            WHERE user_id = ? AND role = 'customer'
-        ");
-        $stmt->bind_param("iii", $order_id, $order_id, $user_id);
-        $stmt->execute();
-
-        // Update admin wallet (sum of all completed orders)
-        $conn->query("
-            UPDATE users 
-            SET wallet = (SELECT IFNULL(SUM(total_amount), 0) FROM orders WHERE status = 'completed')
-            WHERE role = 'admin'
-        ");
-    }
-
-    if (isset($_POST['cancel_order'])) {
-        $order_id = $_POST['order_id'];
-
-        // Mark order as cancelled
-        $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ? AND user_id = ?");
-        $stmt->bind_param("ii", $order_id, $user_id);
-        $stmt->execute();
-
-        // Refund customer if order was already completed
-        $stmt = $conn->prepare("
-            UPDATE users
-            SET wallet = wallet + (SELECT total_amount FROM orders WHERE order_id = ?)
-            WHERE user_id = ? AND role = 'customer'
-        ");
-        $stmt->bind_param("ii", $order_id, $user_id);
-        $stmt->execute();
-    }
-}
-
+// Fetch orders for this user
 $sql = "
     SELECT o.order_id, o.order_date, o.status, 
            COALESCE(SUM(b.price * oi.quantity), 0) AS total_price
@@ -79,7 +31,7 @@ $result = $stmt->get_result();
     <div class="orderhistory-container">
         <h2>📦 Your Orders</h2>
         <?php while ($row = $result->fetch_assoc()): ?>
-            <div class="order-block <?php echo strtolower($row['status']); ?>">
+            <div class="order-block <?php echo strtolower($row['status']); ?>" data-order-id="<?php echo $row['order_id']; ?>">
                 <div class="order-header">
                     <span class="order-id">Order #<?php echo $row['order_id']; ?></span>
                     <span class="order-status-text"><?php echo ucfirst($row['status']); ?></span>
@@ -109,19 +61,60 @@ $result = $stmt->get_result();
                 </div>
 
                 <?php if (in_array($row['status'], ['pending', 'shipped', 'processing'])): ?>
-                    <form method="post" action="order_history.php" class="order-actions">
-                        <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
+                    <div class="order-actions">
                         <?php if ($row['status'] == 'shipped'): ?>
-                            <button type="submit" name="receive_order" class="receive-btn">Receive Order</button>
+                            <button type="button" class="receive-btn" data-order-id="<?php echo $row['order_id']; ?>">
+                                Receive Order
+                            </button>
                         <?php endif; ?>
                         <?php if ($row['status'] == 'pending' || $row['status'] == 'processing'): ?>
-                            <button type="submit" name="cancel_order" class="cancel-btn">Cancel Order</button>
+                            <form method="post" action="order_history.php">
+                                <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
+                                <button type="submit" name="cancel_order" class="cancel-btn">Cancel Order</button>
+                            </form>
                         <?php endif; ?>
-                    </form>
+                    </div>
                 <?php endif; ?>
             </div>
         <?php endwhile; ?>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".receive-btn").forEach(button => {
+        button.addEventListener("click", function() {
+            const orderId = this.getAttribute("data-order-id");
+            fetch("receive_order.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: "order_id=" + orderId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update wallet display
+                    const walletElement = document.querySelector(".wallet-balance");
+                    if (walletElement) {
+                        walletElement.textContent = "💰 ₱" + data.new_wallet;
+                    }
+                     // Update order status instantly
+                    const orderBlock = this.closest(".order-block");
+                    orderBlock.querySelector(".order-status-text").textContent = "Completed";
+
+                    // Remove old status classes and add 'completed'
+                    orderBlock.classList.remove("pending", "shipped", "processing", "cancelled");
+                    orderBlock.classList.add("completed");
+
+                    this.remove();
+                } else {
+                    alert(data.message || "Failed to update order.");
+                }
+            })
+            .catch(() => alert("Error communicating with server."));
+        });
+    });
+});
+</script>
 
 <?php include 'includes/footer.php'; ?>

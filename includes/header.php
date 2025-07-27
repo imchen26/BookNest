@@ -76,7 +76,7 @@ if (isset($_SESSION['user_id'])) {
 
         <?php if ($wallet_display !== null): ?>
         <div class="wallet-header">
-            <a href="/BookNest/wallet.php" class="wallet-link">
+            <a href="/BookNest/wallet.php" class="wallet-link wallet-balance">
                 💰 <?php echo $wallet_display; ?>
             </a>
         </div>
