@@ -67,7 +67,15 @@ $cat_query = $conn->query("SELECT * FROM categories");
             <div class="book-card">
                 <h4><?php echo htmlspecialchars($book['title']); ?></h4>
                 <p>by <?php echo htmlspecialchars($book['author']); ?></p>
-                <p><?php echo display_price($book['price']); ?></p>
+                
+                <p class="price"><?php echo display_price($book['price']); ?></p>
+                
+                <?php if ($book['stock'] > 0): ?>
+                    <p class="stock-status in-stock">In Stock</p>
+                <?php else: ?>
+                    <p class="stock-status out-of-stock">Out of Stock</p>
+                <?php endif; ?>
+                
                 <?php
                 $rating_stmt = $conn->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE book_id = ?");
                 $rating_stmt->bind_param("i", $book['book_id']);

@@ -25,11 +25,14 @@ body {
 }
 
 .book-card {
-    background-color: #fff;
+    background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .book-card:hover {
@@ -37,23 +40,25 @@ body {
 }
 
 .book-card h4 {
-    font-size: 1.2em;
-    margin-bottom: 10px;
+    font-size: 1.2rem;
     color: #010F47;
+    margin-bottom: 10px;
+    min-height: 50px;
 }
 
 .book-card p {
     margin: 5px 0;
+    color: #555;
 }
 
 .book-card form {
-    margin-top: 10px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.book-card input[type="number"] {
+.book-card input[type="number"] { 
     width: 70px;
     padding: 5px;
     font-size: 1em;
@@ -73,4 +78,23 @@ body {
 
 .book-card button:hover {
     background-color: #0d1a70;
+}
+
+.price {
+    color: red !important;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.stock-status {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stock-status.in-stock {
+    color: green !important;
+}
+
+.stock-status.out-of-stock {
+    color: #c00 !important;
 }

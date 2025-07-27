@@ -114,6 +114,25 @@ body {
     background-color: #0d1a70;
 }
 
+.price {
+    color: red !important;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.stock-status {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stock-status.in-stock {
+    color: green !important;
+}
+
+.stock-status.out-of-stock {
+    color: #c00 !important;
+}
+
 .pagination {
     text-align: center;
     margin-top: 30px;
