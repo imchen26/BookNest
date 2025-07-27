@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 03:39 PM
+-- Generation Time: Jul 27, 2025 at 04:10 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -135,7 +135,8 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (22, 'The Adventures of Huckleberry Finn', 'Mark Twain', 460.00, 9, 12, 0, 0),
 (23, 'The Power of Now', 'Eckhart Tolle', 520.00, 6, 13, 1, 1),
 (24, 'Milk and Honey', 'Rupi Kaur', 350.00, 15, 14, 1, 1),
-(25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0);
+(25, 'Humans of New York', 'Brandon Stanton', 780.00, 4, 15, 0, 0),
+(26, 'Salt, Fat, Acid, Heat', 'Samin Nosrat', 750.00, 20, 16, 1, 0);
 
 --
 -- Triggers `books`
@@ -203,7 +204,8 @@ INSERT INTO `categories` (`category_id`, `name`) VALUES
 (12, 'Adventure'),
 (13, 'Self-Help'),
 (14, 'Poetry'),
-(15, 'Art & Photography');
+(15, 'Art & Photography'),
+(16, 'Cookbooks');
 
 -- --------------------------------------------------------
 
@@ -532,6 +534,7 @@ CREATE TABLE `user_currency_preference` (
 --
 
 INSERT INTO `user_currency_preference` (`user_id`, `currency_id`) VALUES
+(5, 2),
 (7, 2);
 
 --
@@ -622,7 +625,7 @@ ALTER TABLE `user_currency_preference`
 -- AUTO_INCREMENT for table `books`
 --
 ALTER TABLE `books`
-  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `cart`
@@ -634,7 +637,7 @@ ALTER TABLE `cart`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `currencies`

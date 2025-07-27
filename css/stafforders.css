@@ -8,57 +8,102 @@ body {
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 60px auto;
     padding: 0 20px;
 }
 
-.orders-container {
-    max-width: 1000px;
-    margin: auto;
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.container h2 {
+    color: #010F47;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.orders-container h2 {
-    text-align: center;
-    margin-bottom: 30px;
+.orders-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.order-header h3 {
+    margin: 0;
+    color: #010F47;
+    font-size: 16px;
+}
+
+.order-details {
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.items-list {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.items-list strong {
+    display: block;
+    margin-bottom: 5px;
     color: #010F47;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.items-list p {
+    margin: 0;
+    padding: 2px 0;
 }
 
-table th, table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ccc;
+.status-update {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
 }
 
-table th {
-    background-color: #010F47;
-    color: white;
-}
-
-table td select, table td button {
+.status-update select,
+.status-update button {
     padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
+    font-size: 13px;
 }
 
-table td button {
+.status-update button {
     background-color: #010F47;
     color: white;
     border: none;
     transition: background-color 0.3s;
 }
 
-table td button:hover {
+.status-update button:hover {
     background-color: #023e8a;
 }
