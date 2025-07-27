@@ -10,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+// Fetch orders
 $sql = "
     SELECT o.order_id, o.order_date, o.status, 
            COALESCE(SUM(b.price * oi.quantity), 0) AS total_price
@@ -37,6 +38,27 @@ $result = $stmt->get_result();
                 </div>
                 <p class="order-price"><?php echo display_price($row['total_price']); ?></p>
                 <small class="order-date">Placed on: <?php echo date("M d, Y", strtotime($row['order_date'])); ?></small>
+
+                <div class="order-items">
+                    <ul>
+                        <?php
+                        $items_stmt = $conn->prepare("
+                            SELECT b.title, oi.quantity, oi.subtotal
+                            FROM order_items oi
+                            JOIN books b ON oi.book_id = b.book_id
+                            WHERE oi.order_id = ?
+                        ");
+                        $items_stmt->bind_param("i", $row['order_id']);
+                        $items_stmt->execute();
+                        $items = $items_stmt->get_result();
+
+                        while ($item = $items->fetch_assoc()) {
+                            echo "<li>" . htmlspecialchars($item['title']) . 
+                                 " (x" . $item['quantity'] . ") - ₱" . number_format($item['subtotal'], 2) . "</li>";
+                        }
+                        ?>
+                    </ul>
+                </div>
             </div>
         <?php endwhile; ?>
     </div>

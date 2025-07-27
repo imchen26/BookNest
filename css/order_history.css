@@ -69,3 +69,21 @@ body {
     font-size: 0.9em;
     opacity: 0.9;
 }
+
+.order-items {
+    margin-top: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.order-items ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.order-items li {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
