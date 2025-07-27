@@ -42,11 +42,19 @@ body {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    transition: border-color 0.2s;
+}
+
+.book-form input[type="text"]:focus,
+.book-form input[type="number"]:focus,
+.book-form select:focus {
+    border-color: #010F47;
+    outline: none;
 }
 
 .book-form .checkbox-group {
     display: flex;
-    gap: 10px; 
+    gap: 15px;
     flex: 1 1 100%;
     align-items: center;
     margin-top: 10px;
@@ -56,6 +64,8 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
+    font-size: 14px;
+    color: #555;
 }
 
 .book-form button {
@@ -75,6 +85,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 table th,
@@ -82,18 +93,43 @@ table td {
     padding: 12px;
     border-bottom: 1px solid #ddd;
     text-align: left;
+    vertical-align: middle;
 }
 
 table th {
     background-color: #010F47;
     color: white;
+    font-weight: normal;
 }
 
-table td a {
-    color: #e74c3c;
+table td {
+    font-size: 14px;
+    color: #333;
+}
+
+.action-buttons a {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
     text-decoration: none;
+    color: #fff;
+    font-size: 13px;
+    transition: background-color 0.3s;
+    margin-right: 5px;
 }
 
-table td a:hover {
-    text-decoration: underline;
+.action-buttons .edit-btn {
+    background-color: #3498db;
+}
+
+.action-buttons .edit-btn:hover {
+    background-color: #217dbb;
+}
+
+.action-buttons .delete-btn {
+    background-color: #e74c3c;
+}
+
+.action-buttons .delete-btn:hover {
+    background-color: #c0392b;
 }

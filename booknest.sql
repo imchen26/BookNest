@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 05:00 PM
+-- Generation Time: Jul 27, 2025 at 07:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -111,7 +111,7 @@ CREATE TABLE `books` (
 --
 
 INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_id`, `is_featured`, `is_digital`) VALUES
-(1, 'The Alchemist', 'Paulo Coelho', 499.00, 10, 1, 1, 0),
+(1, 'The Alchemist', 'Paulo Coelho', 499.00, 20, 1, 1, 0),
 (2, 'A Brief History of Time', 'Stephen Hawking', 650.00, 8, 3, 0, 0),
 (3, 'Rich Dad Poor Dad', 'Robert Kiyosaki', 550.00, 12, 5, 1, 0),
 (4, 'Harry Potter and the Sorcerer\'s Stone', 'J.K. Rowling', 450.00, 15, 4, 1, 0),
@@ -150,6 +150,28 @@ CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BE
 END
 $$
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_stock_log`
+--
+
+CREATE TABLE `book_stock_log` (
+  `log_id` int(11) NOT NULL,
+  `book_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `old_stock` int(11) NOT NULL,
+  `new_stock` int(11) NOT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `book_stock_log`
+--
+
+INSERT INTO `book_stock_log` (`log_id`, `book_id`, `title`, `old_stock`, `new_stock`, `updated_at`) VALUES
+(1, 1, 'The Alchemist', 10, 20, '2025-07-27 17:10:38');
 
 -- --------------------------------------------------------
 
@@ -249,7 +271,8 @@ INSERT INTO `logs` (`log_id`, `action`, `description`, `created_at`) VALUES
 (1, 'SIGNUP', 'New user admin1 registered.', '2025-07-17 12:20:48'),
 (2, 'SIGNUP', 'New user staff1 registered.', '2025-07-17 12:20:48'),
 (3, 'SIGNUP', 'New user cust1 registered.', '2025-07-17 12:20:48'),
-(4, 'SIGNUP', 'New user cust2 registered.', '2025-07-17 12:20:48');
+(4, 'SIGNUP', 'New user cust2 registered.', '2025-07-17 12:20:48'),
+(5, 'SIGNUP', 'New user cust3 registered.', '2025-07-27 16:58:54');
 
 -- --------------------------------------------------------
 
@@ -523,7 +546,8 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `create
 (5, 'admin', '$2y$10$PtX32S29ePGWVaBwSOvRAeIgt/9EjLG42hL3Hdy0618lJ21w4kvga', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48'),
 (6, 'staff', '$2y$10$HZnNT2n2orgKhNfqGDmRpOOWRnN/NN5mVpubC284qdoimILtVbrvi', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48'),
 (7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
-(8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48');
+(8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48'),
+(9, 'cust3', '$2y$10$9r1QbwSW6/vplAOFRbq7CeepC24eAm2wCULHB9PCxmOevfNYuIO8K', 'cust3@gmail.com', 'customer', '2025-07-27 16:58:54');
 
 --
 -- Triggers `users`
@@ -565,6 +589,12 @@ INSERT INTO `user_currency_preference` (`user_id`, `currency_id`) VALUES
 ALTER TABLE `books`
   ADD PRIMARY KEY (`book_id`),
   ADD KEY `category_id` (`category_id`);
+
+--
+-- Indexes for table `book_stock_log`
+--
+ALTER TABLE `book_stock_log`
+  ADD PRIMARY KEY (`log_id`);
 
 --
 -- Indexes for table `cart`
@@ -646,6 +676,12 @@ ALTER TABLE `books`
   MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
+-- AUTO_INCREMENT for table `book_stock_log`
+--
+ALTER TABLE `book_stock_log`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
@@ -667,7 +703,7 @@ ALTER TABLE `currencies`
 -- AUTO_INCREMENT for table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -697,7 +733,7 @@ ALTER TABLE `transaction_log`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Constraints for dumped tables
