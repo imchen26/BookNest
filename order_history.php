@@ -13,14 +13,47 @@ $user_id = $_SESSION['user_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['receive_order'])) {
         $order_id = $_POST['order_id'];
+
+        // Mark order as completed
         $stmt = $conn->prepare("UPDATE orders SET status = 'completed' WHERE order_id = ? AND user_id = ?");
         $stmt->bind_param("ii", $order_id, $user_id);
         $stmt->execute();
+
+        // Deduct from customer wallet
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET wallet = CASE 
+                WHEN wallet >= (SELECT total_amount FROM orders WHERE order_id = ?) 
+                THEN wallet - (SELECT total_amount FROM orders WHERE order_id = ?) 
+                ELSE 0.00
+            END 
+            WHERE user_id = ? AND role = 'customer'
+        ");
+        $stmt->bind_param("iii", $order_id, $order_id, $user_id);
+        $stmt->execute();
+
+        // Update admin wallet (sum of all completed orders)
+        $conn->query("
+            UPDATE users 
+            SET wallet = (SELECT IFNULL(SUM(total_amount), 0) FROM orders WHERE status = 'completed')
+            WHERE role = 'admin'
+        ");
     }
 
     if (isset($_POST['cancel_order'])) {
         $order_id = $_POST['order_id'];
+
+        // Mark order as cancelled
         $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $order_id, $user_id);
+        $stmt->execute();
+
+        // Refund customer if order was already completed
+        $stmt = $conn->prepare("
+            UPDATE users
+            SET wallet = wallet + (SELECT total_amount FROM orders WHERE order_id = ?)
+            WHERE user_id = ? AND role = 'customer'
+        ");
         $stmt->bind_param("ii", $order_id, $user_id);
         $stmt->execute();
     }

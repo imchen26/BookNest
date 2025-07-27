@@ -112,3 +112,20 @@ nav ul li a:hover {
         width: 100%;
     }
 }
+
+.wallet-header {
+    margin-left: auto;
+    padding-right: 10px;
+}
+
+.wallet-link {
+    text-decoration: none;
+    color: #27ae60;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.wallet-link:hover {
+    color: #1e8449;
+}

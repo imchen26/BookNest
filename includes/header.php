@@ -34,6 +34,28 @@ if (isset($_SESSION['user_id']) && !isset($_SESSION['currency_id'])) {
 }
 
 $currentCurrencyId = $_SESSION['currency_id'] ?? 1;
+
+$wallet_display = null;
+if (isset($_SESSION['user_id'])) {
+    $uid = $_SESSION['user_id'];
+    $role = $_SESSION['role'];
+
+    if ($role === 'customer') {
+        $stmt = $conn->prepare("SELECT wallet FROM users WHERE user_id = ?");
+        $stmt->bind_param("i", $uid);
+        $stmt->execute();
+        $stmt->bind_result($wallet);
+        $stmt->fetch();
+        $stmt->close();
+        $wallet_display = "₱" . number_format($wallet, 2);
+    } elseif ($role === 'admin') {
+        $res = $conn->query("SELECT IFNULL(SUM(total_amount), 0) AS total FROM orders WHERE status = 'completed'");
+        $total = $res->fetch_assoc()['total'];
+        $wallet_display = "Earnings: ₱" . number_format($total, 2);
+    } else {
+        $wallet_display = "₱0.00";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +73,14 @@ $currentCurrencyId = $_SESSION['currency_id'] ?? 1;
 <header>
     <div class="container">
         <h1>📚 BookNest</h1>
+
+        <?php if ($wallet_display !== null): ?>
+        <div class="wallet-header">
+            <a href="/BookNest/wallet.php" class="wallet-link">
+                💰 <?php echo $wallet_display; ?>
+            </a>
+        </div>
+        <?php endif; ?>
 
         <form method="post" class="currency-form">
             <label for="currency_id">Currency:</label>
