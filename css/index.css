@@ -98,3 +98,19 @@ body {
 .stock-status.out-of-stock {
     color: #c00 !important;
 }
+
+.view-all-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 12px 30px;
+    background-color: #010F47;
+    color: #fff;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.view-all-btn:hover {
+    background-color: #0d1a70;
+}

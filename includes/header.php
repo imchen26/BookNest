@@ -68,9 +68,9 @@ $currentCurrencyId = $_SESSION['currency_id'] ?? 1;
                 <li><a href="/BookNest/index.php">Home</a></li>
                 <li><a href="/BookNest/browse.php">Browse</a></li>
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                    <li><a href="/BookNest/admin/dashboard.php">Admin Panel</a></li>
+                    <li><a href="/BookNest/admin-dashboard.php">Admin Panel</a></li>
                 <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'staff'): ?>
-                    <li><a href="/BookNest/staff/orders.php">Staff Panel</a></li>
+                    <li><a href="/BookNest/staff-orders.php">Staff Panel</a></li>
                 <?php endif; ?>
                 <?php if (!isset($_SESSION['role']) || $_SESSION['role'] === 'customer'): ?>
                     <li><a href="/BookNest/cart.php">Cart</a></li>

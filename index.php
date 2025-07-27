@@ -30,6 +30,10 @@ $result = $conn->query("SELECT * FROM books ORDER BY RAND() LIMIT 8");
             </div>
         <?php endwhile; ?>
     </div>
+
+     <div style="text-align: center; margin-top: 30px;">
+        <a href="browse.php" class="view-all-btn">View All Books</a>
+    </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>

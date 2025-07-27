@@ -1,14 +1,13 @@
 <?php 
-require_once '../includes/db.php';
-$page_css = '/BookNest/css/books.css';
-include '../includes/header.php';
+require_once 'includes/db.php';
+$page_css = '/BookNest/css/adminbooks.css';
+include 'includes/header.php';
 
 if ($_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
-// Add book logic
 if (isset($_POST['add'])) {
     $title = $_POST['title'];
     $author = $_POST['author'];
@@ -35,7 +34,7 @@ $books = $conn->query("SELECT * FROM books");
 <div class="container">
     <div class="books-container">
         <h2>📚 Manage Books</h2>
-        <form method="post">
+        <form method="post" class="book-form">
             <input type="text" name="title" placeholder="Title" required>
             <input type="text" name="author" placeholder="Author">
             <input type="number" step="0.01" name="price" placeholder="Price" required>
@@ -46,8 +45,12 @@ $books = $conn->query("SELECT * FROM books");
                 <?php endwhile; ?>
             </select>
             <input type="number" name="stock" placeholder="Stock" min="0">
-            <label><input type="checkbox" name="is_featured"> Featured Book</label>
-            <label><input type="checkbox" name="is_digital"> Digital Book</label>
+
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="is_featured"> Featured Book</label>
+                <label><input type="checkbox" name="is_digital"> Digital Book</label>
+            </div>
+
             <button type="submit" name="add">Add Book</button>
         </form>
 
@@ -76,4 +79,4 @@ $books = $conn->query("SELECT * FROM books");
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

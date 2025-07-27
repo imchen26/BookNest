@@ -1,10 +1,10 @@
 <?php
-require_once '../includes/db.php';
-$page_css = '/BookNest/css/categories.css';
-include '../includes/header.php';
+require_once 'includes/db.php';
+$page_css = '/BookNest/css/admincategories.css';
+include 'includes/header.php';
 
 if ($_SESSION['role'] != 'admin') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -43,4 +43,4 @@ $result = $conn->query("SELECT * FROM categories");
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

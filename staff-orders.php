@@ -1,10 +1,10 @@
 <?php
-require_once '../includes/db.php';
+require_once 'includes/db.php';
 $page_css = '/BookNest/css/stafforders.css';
-include '../includes/header.php';
+include 'includes/header.php';
 
 if ($_SESSION['role'] != 'staff') {
-    header("Location: ../login.php");
+    header("Location: login.php");
     exit;
 }
 
@@ -54,4 +54,4 @@ $result = $conn->query("
     </div>
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>

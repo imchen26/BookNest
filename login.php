@@ -22,9 +22,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['role'] = $row['role'];
 
             if ($row['role'] == 'admin') {
-                header("Location: /BookNest/admin/dashboard.php");
+                header("Location: admin-dashboard.php");
             } elseif ($row['role'] == 'staff') {
-                header("Location: /BookNest/staff/orders.php");
+                header("Location: staff-orders.php");
             } else {
                 header("Location: index.php");
             }
