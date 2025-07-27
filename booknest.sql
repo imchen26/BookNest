@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 07:11 PM
+-- Generation Time: Jul 27, 2025 at 07:45 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -268,8 +268,8 @@ CREATE TABLE `logs` (
 --
 
 INSERT INTO `logs` (`log_id`, `action`, `description`, `created_at`) VALUES
-(1, 'SIGNUP', 'New user admin1 registered.', '2025-07-17 12:20:48'),
-(2, 'SIGNUP', 'New user staff1 registered.', '2025-07-17 12:20:48'),
+(1, 'SIGNUP', 'New user admin registered.', '2025-07-17 12:20:48'),
+(2, 'SIGNUP', 'New user staff registered.', '2025-07-17 12:20:48'),
 (3, 'SIGNUP', 'New user cust1 registered.', '2025-07-17 12:20:48'),
 (4, 'SIGNUP', 'New user cust2 registered.', '2025-07-17 12:20:48'),
 (5, 'SIGNUP', 'New user cust3 registered.', '2025-07-27 16:58:54');
@@ -324,6 +324,32 @@ CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
     NEW.total_amount,
     NOW()
   );
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `update_wallets_after_order_update` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
+    -- Run only when order becomes completed
+    IF NEW.status = 'completed' AND OLD.status <> 'completed' THEN
+    
+        -- 1. Deduct from customer wallet (not below zero)
+        UPDATE users
+        SET wallet = CASE 
+            WHEN wallet >= NEW.total_amount THEN wallet - NEW.total_amount
+            ELSE 0.00
+        END
+        WHERE user_id = NEW.user_id AND role = 'customer';
+
+        -- 2. Update admin wallet = total of all completed orders
+        UPDATE users
+        SET wallet = (
+            SELECT IFNULL(SUM(total_amount), 0)
+            FROM orders
+            WHERE status = 'completed'
+        )
+        WHERE role = 'admin';
+
+    END IF;
 END
 $$
 DELIMITER ;
@@ -535,19 +561,20 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
   `role` enum('admin','staff','customer') NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `wallet` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `created_at`) VALUES
-(5, 'admin', '$2y$10$PtX32S29ePGWVaBwSOvRAeIgt/9EjLG42hL3Hdy0618lJ21w4kvga', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48'),
-(6, 'staff', '$2y$10$HZnNT2n2orgKhNfqGDmRpOOWRnN/NN5mVpubC284qdoimILtVbrvi', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48'),
-(7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48'),
-(8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48'),
-(9, 'cust3', '$2y$10$9r1QbwSW6/vplAOFRbq7CeepC24eAm2wCULHB9PCxmOevfNYuIO8K', 'cust3@gmail.com', 'customer', '2025-07-27 16:58:54');
+INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `created_at`, `wallet`) VALUES
+(5, 'admin', '$2y$10$PtX32S29ePGWVaBwSOvRAeIgt/9EjLG42hL3Hdy0618lJ21w4kvga', 'admin1@booknest.com', 'admin', '2025-07-17 12:20:48', 1599.00),
+(6, 'staff', '$2y$10$HZnNT2n2orgKhNfqGDmRpOOWRnN/NN5mVpubC284qdoimILtVbrvi', 'staff1@booknest.com', 'staff', '2025-07-17 12:20:48', 0.00),
+(7, 'cust1', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust1@email.com', 'customer', '2025-07-17 12:20:48', 14000.00),
+(8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48', 12000.00),
+(9, 'cust3', '$2y$10$9r1QbwSW6/vplAOFRbq7CeepC24eAm2wCULHB9PCxmOevfNYuIO8K', 'cust3@gmail.com', 'customer', '2025-07-27 16:58:54', 5000.00);
 
 --
 -- Triggers `users`
