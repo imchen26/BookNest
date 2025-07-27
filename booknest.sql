@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 07:45 PM
+-- Generation Time: Jul 27, 2025 at 08:39 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -303,7 +303,8 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (15, 7, '2025-07-27 14:27:35', 'pending', 599.00),
 (16, 7, '2025-07-27 14:28:43', 'cancelled', 599.00),
 (17, 7, '2025-07-27 14:32:38', 'completed', 399.00),
-(18, 7, '2025-07-27 14:34:03', 'pending', 599.00);
+(18, 7, '2025-07-27 14:34:03', 'pending', 599.00),
+(19, 7, '2025-07-27 18:38:47', 'pending', 780.00);
 
 --
 -- Triggers `orders`
@@ -385,7 +386,8 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (13, 15, 8, 1, 599.00),
 (14, 16, 8, 1, 599.00),
 (15, 17, 18, 1, 399.00),
-(16, 18, 8, 1, 599.00);
+(16, 18, 8, 1, 599.00),
+(17, 19, 25, 1, 780.00);
 
 --
 -- Triggers `order_items`
@@ -547,7 +549,8 @@ INSERT INTO `transaction_log` (`log_id`, `order_id`, `payment_method`, `payment_
 (5, 15, 'Cash', 'Pending', 599.00, '2025-07-27 14:27:35'),
 (6, 16, 'Cash', 'Pending', 599.00, '2025-07-27 14:28:43'),
 (7, 17, 'Cash', 'Pending', 399.00, '2025-07-27 14:32:38'),
-(8, 18, 'Cash', 'Pending', 599.00, '2025-07-27 14:34:03');
+(8, 18, 'Cash', 'Pending', 599.00, '2025-07-27 14:34:03'),
+(9, 19, 'Cash', 'Pending', 780.00, '2025-07-27 18:38:47');
 
 -- --------------------------------------------------------
 
@@ -736,13 +739,13 @@ ALTER TABLE `logs`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -754,7 +757,7 @@ ALTER TABLE `reviews`
 -- AUTO_INCREMENT for table `transaction_log`
 --
 ALTER TABLE `transaction_log`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
