@@ -87,3 +87,41 @@ body {
     font-size: 0.9em;
     margin-bottom: 5px;
 }
+
+.order-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+}
+
+.receive-btn {
+    background-color: #4caf50; 
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.receive-btn:hover {
+    background-color: #45a049;
+}
+
+.cancel-btn {
+    background-color: #e53935; 
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.cancel-btn:hover {
+    background-color: #c62828;
+}

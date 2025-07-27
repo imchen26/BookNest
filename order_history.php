@@ -1,4 +1,4 @@
-<?php  
+<?php
 require_once 'includes/db.php';
 $page_css = '/BookNest/css/order_history.css';
 include 'includes/header.php';
@@ -10,7 +10,22 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch orders
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['receive_order'])) {
+        $order_id = $_POST['order_id'];
+        $stmt = $conn->prepare("UPDATE orders SET status = 'completed' WHERE order_id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $order_id, $user_id);
+        $stmt->execute();
+    }
+
+    if (isset($_POST['cancel_order'])) {
+        $order_id = $_POST['order_id'];
+        $stmt = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $order_id, $user_id);
+        $stmt->execute();
+    }
+}
+
 $sql = "
     SELECT o.order_id, o.order_date, o.status, 
            COALESCE(SUM(b.price * oi.quantity), 0) AS total_price
@@ -53,12 +68,24 @@ $result = $stmt->get_result();
                         $items = $items_stmt->get_result();
 
                         while ($item = $items->fetch_assoc()) {
-                            echo "<li>" . htmlspecialchars($item['title']) . 
+                            echo "<li>" . htmlspecialchars($item['title']) .
                                  " (x" . $item['quantity'] . ") - ₱" . number_format($item['subtotal'], 2) . "</li>";
                         }
                         ?>
                     </ul>
                 </div>
+
+                <?php if (in_array($row['status'], ['pending', 'shipped', 'processing'])): ?>
+                    <form method="post" action="order_history.php" class="order-actions">
+                        <input type="hidden" name="order_id" value="<?php echo $row['order_id']; ?>">
+                        <?php if ($row['status'] == 'shipped'): ?>
+                            <button type="submit" name="receive_order" class="receive-btn">Receive Order</button>
+                        <?php endif; ?>
+                        <?php if ($row['status'] == 'pending' || $row['status'] == 'processing'): ?>
+                            <button type="submit" name="cancel_order" class="cancel-btn">Cancel Order</button>
+                        <?php endif; ?>
+                    </form>
+                <?php endif; ?>
             </div>
         <?php endwhile; ?>
     </div>
