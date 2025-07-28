@@ -139,7 +139,7 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (26, 'Salt, Fat, Acid, Heat', 'Samin Nosrat', 750.00, 20, 16, 1, 0);
 
 --
---  Trigger 1: `books`
+--  Trigger 1: `books` (tested)
 --
 DELIMITER $$
 CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BEGIN
@@ -307,7 +307,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (19, 7, '2025-07-27 18:38:47', 'pending', 780.00);
 
 --
--- Trigger 2: `orders`
+-- Trigger 2: `orders` (tested)
 --
 DELIMITER $$
 CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
