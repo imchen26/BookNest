@@ -54,7 +54,7 @@ $result = $stmt->get_result();
 
                         while ($item = $items->fetch_assoc()) {
                             echo "<li>" . htmlspecialchars($item['title']) .
-                                 " (x" . $item['quantity'] . ") - ₱" . number_format($item['subtotal'], 2) . "</li>";
+                                " (x" . $item['quantity'] . ") - " . display_price($item['subtotal']) . "</li>";
                         }
                         ?>
                     </ul>

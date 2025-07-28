@@ -41,7 +41,7 @@ $result = $conn->query("
                 <div class="order-details">
                     <p><strong>User ID:</strong> <?php echo $row['user_id']; ?></p>
                     <p><strong>Date:</strong> <?php echo date("M d, Y h:i A", strtotime($row['order_date'])); ?></p>
-                    <p><strong>Total Amount:</strong> ₱<?php echo number_format($row['total_amount'], 2); ?></p>
+                    <p><strong>Total Amount:</strong> <?php echo display_price($row['total_amount']); ?></p>
                 </div>
                 <div class="items-list">
                     <strong>Items:</strong>
