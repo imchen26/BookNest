@@ -944,7 +944,33 @@ $$
 
 DELIMITER ;
 
+--
 -- Trigger 11:
+-- Logs when new books are added
+--
+CREATE TABLE book_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    action VARCHAR(50),
+    log_time DATETIME,
+    title_logged VARCHAR(255),
+    author_logged VARCHAR(255)
+);
+
+DELIMITER $$
+
+CREATE TRIGGER log_book_insert
+AFTER INSERT ON books
+FOR EACH ROW
+BEGIN
+    INSERT INTO book_logs (book_id, action, log_time, title_logged, author_logged)
+    VALUES (NEW.book_id, 'INSERT', NOW(), NEW.title, NEW.author);
+END$$
+
+DELIMITER ;
+
+
+-- Trigger 12:
 -- Automatically log a warning when a book’s stock falls below a threshold 
 DELIMITER $$
 
