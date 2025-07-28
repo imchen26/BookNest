@@ -9,6 +9,7 @@ if ($currencyQuery) {
     $currencies = $currencyQuery->fetch_all(MYSQLI_ASSOC);
 }
 
+// Handle currency selection
 if (isset($_POST['currency_id'])) {
     $_SESSION['currency_id'] = (int)$_POST['currency_id'];
     $selectedCurrencyId = $_SESSION['currency_id'];
@@ -24,6 +25,7 @@ if (isset($_POST['currency_id'])) {
     exit;
 }
 
+// Load saved currency preference
 if (isset($_SESSION['user_id']) && !isset($_SESSION['currency_id'])) {
     $uid = $_SESSION['user_id'];
     $prefQuery = $conn->query("SELECT currency_id FROM user_currency_preference WHERE user_id = $uid");
@@ -34,6 +36,15 @@ if (isset($_SESSION['user_id']) && !isset($_SESSION['currency_id'])) {
 }
 
 $currentCurrencyId = $_SESSION['currency_id'] ?? 1;
+
+// Find currency code for display
+$currencyCode = 'PHP';
+foreach ($currencies as $cur) {
+    if ($cur['currency_id'] == $currentCurrencyId) {
+        $currencyCode = $cur['currency_code'];
+        break;
+    }
+}
 
 $wallet_display = null;
 if (isset($_SESSION['user_id'])) {
@@ -47,13 +58,32 @@ if (isset($_SESSION['user_id'])) {
         $stmt->bind_result($wallet);
         $stmt->fetch();
         $stmt->close();
-        $wallet_display = "₱" . number_format($wallet, 2);
+
+        // Ensure wallet is not null
+        $wallet = $wallet ?? 0.00;
+
+        // Convert wallet to selected currency
+        $convertedWallet = $conn->query(
+            "SELECT ConvertPrice($wallet, $currentCurrencyId) AS converted"
+        )->fetch_assoc()['converted'];
+
+        $wallet_display = $currencyCode . " " . number_format($convertedWallet, 2);
     } elseif ($role === 'admin') {
         $res = $conn->query("SELECT IFNULL(SUM(total_amount), 0) AS total FROM orders WHERE status = 'completed'");
-        $total = $res->fetch_assoc()['total'];
-        $wallet_display = "Earnings: ₱" . number_format($total, 2);
+        $total = 0.00;
+        if ($res) {
+            $row = $res->fetch_assoc();
+            $total = $row['total'] ?? 0.00;
+        }
+
+        // Convert total earnings to selected currency
+        $convertedTotal = $conn->query(
+            "SELECT ConvertPrice($total, $currentCurrencyId) AS converted"
+        )->fetch_assoc()['converted'];
+
+        $wallet_display = "Earnings: " . $currencyCode . " " . number_format($convertedTotal, 2);
     } else {
-        $wallet_display = "₱0.00";
+        $wallet_display = $currencyCode . " 0.00";
     }
 }
 ?>

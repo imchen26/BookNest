@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 27, 2025 at 08:39 PM
+-- Generation Time: Jul 28, 2025 at 04:10 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -139,7 +139,7 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (26, 'Salt, Fat, Acid, Heat', 'Samin Nosrat', 750.00, 20, 16, 1, 0);
 
 --
---  Trigger 1: `books` (tested)
+-- Triggers `books`
 --
 DELIMITER $$
 CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BEGIN
@@ -150,6 +150,72 @@ CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BE
 END
 $$
 DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `log_book_insert` AFTER INSERT ON `books` FOR EACH ROW BEGIN
+    INSERT INTO book_logs (book_id, action, log_time, title_logged, author_logged)
+    VALUES (NEW.book_id, 'INSERT', NOW(), NEW.title, NEW.author);
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_book_delete` BEFORE DELETE ON `books` FOR EACH ROW BEGIN
+  INSERT INTO books_archive (
+    book_id, title, author, price, stock,
+    category_id, is_featured, is_digital, deleted_at
+  )
+  VALUES (
+    OLD.book_id, OLD.title, OLD.author, OLD.price, OLD.stock,
+    OLD.category_id, OLD.is_featured, OLD.is_digital, NOW()
+  );
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_low_stock_alert` AFTER UPDATE ON `books` FOR EACH ROW BEGIN
+  IF NEW.stock < 5 AND NEW.stock < OLD.stock THEN
+    INSERT INTO logs (action, description, created_at)
+    VALUES (
+      'LOW_STOCK_ALERT',
+      CONCAT('Book "', NEW.title, '" has low stock (', NEW.stock, ' left).'),
+      NOW()
+    );
+  END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `books_archive`
+--
+
+CREATE TABLE `books_archive` (
+  `book_id` int(11) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `author` varchar(255) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) DEFAULT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `is_featured` tinyint(1) DEFAULT NULL,
+  `is_digital` tinyint(1) DEFAULT NULL,
+  `deleted_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_logs`
+--
+
+CREATE TABLE `book_logs` (
+  `log_id` int(11) NOT NULL,
+  `book_id` int(11) DEFAULT NULL,
+  `action` varchar(50) DEFAULT NULL,
+  `log_time` datetime DEFAULT NULL,
+  `title_logged` varchar(255) DEFAULT NULL,
+  `author_logged` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -195,6 +261,33 @@ INSERT INTO `cart` (`cart_id`, `user_id`, `book_id`, `quantity`) VALUES
 (5, 7, 3, 1),
 (6, 8, 4, 1),
 (7, 8, 2, 1);
+
+--
+-- Triggers `cart`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_validate_cart_stock` BEFORE INSERT ON `cart` FOR EACH ROW BEGIN
+    DECLARE current_stock INT;
+    
+    -- get current stock for the book
+    SELECT stock INTO current_stock 
+    FROM books 
+    WHERE book_id = NEW.book_id;
+    
+    -- check if requested quantity exceeds available stock
+    IF current_stock < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot add to cart: Not enough stock available';
+    END IF;
+    
+    -- check if stock is zero
+    IF current_stock = 0 THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Cannot add to cart: Item is out of stock';
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -307,7 +400,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (19, 7, '2025-07-27 18:38:47', 'pending', 780.00);
 
 --
--- Trigger 2: `orders` (tested)
+-- Triggers `orders`
 --
 DELIMITER $$
 CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
@@ -328,10 +421,19 @@ CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
 END
 $$
 DELIMITER ;
-
---
--- Trigger 3: update wallet
---
+DELIMITER $$
+CREATE TRIGGER `trg_log_order_status` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
+  IF NOT OLD.status <=> NEW.status THEN
+    INSERT INTO logs (action, description, created_at)
+    VALUES (
+      'ORDER_STATUS_CHANGE',
+      CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
+      NOW()
+    );
+  END IF;
+END
+$$
+DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `update_wallets_after_order_update` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
     -- Run only when order becomes completed
@@ -394,14 +496,42 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (17, 19, 25, 1, 780.00);
 
 --
--- Trigger 4: `order_items`
+-- Triggers `order_items`
 --
+DELIMITER $$
+CREATE TRIGGER `trg_calculate_subtotal` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
+  DECLARE book_price DECIMAL(10,2);
+  SELECT price INTO book_price FROM books WHERE book_id = NEW.book_id;
+  SET NEW.subtotal = book_price * NEW.quantity;
+END
+$$
+DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `trg_reduce_stock` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
     IF (SELECT stock FROM books WHERE book_id = NEW.book_id) < NEW.quantity THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Not enough stock';
     END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_update_order_total` AFTER INSERT ON `order_items` FOR EACH ROW BEGIN
+  UPDATE orders
+  SET total_amount = (
+    SELECT SUM(subtotal)
+    FROM order_items
+    WHERE order_id = NEW.order_id
+  )
+  WHERE order_id = NEW.order_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_update_stock_after_order_items_insert` AFTER INSERT ON `order_items` FOR EACH ROW BEGIN
+    UPDATE books
+    SET stock = stock - NEW.quantity
+    WHERE book_id = NEW.book_id;
 END
 $$
 DELIMITER ;
@@ -559,6 +689,19 @@ INSERT INTO `transaction_log` (`log_id`, `order_id`, `payment_method`, `payment_
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `trg_log_signup`
+--
+
+CREATE TABLE `trg_log_signup` (
+  `log_id` int(11) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -583,39 +726,11 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `create
 (8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48', 12000.00),
 (9, 'cust3', '$2y$10$9r1QbwSW6/vplAOFRbq7CeepC24eAm2wCULHB9PCxmOevfNYuIO8K', 'cust3@gmail.com', 'customer', '2025-07-27 16:58:54', 5000.00);
 
--- 
--- Table for signup log
 --
-CREATE TABLE trg_log_signup (
-  log_id INT AUTO_INCREMENT PRIMARY KEY,
-  action VARCHAR(50) NOT NULL,
-  description TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
+-- Triggers `users`
 --
--- Table for user logs (for signup and delete)
---
-CREATE TABLE user_logs (
-    log_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,              -- references users.user_id
-    username VARCHAR(50) NOT NULL,     -- store username for easier reading
-    action VARCHAR(50) NOT NULL,       -- e.g., 'SIGNUP', 'DELETE_USER'
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
-
---
--- Trigger 5: (tested)
--- Logs user signups
 DELIMITER $$
-
-CREATE TRIGGER trg_log_signup
-AFTER INSERT ON users
-FOR EACH ROW
-BEGIN
+CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
     INSERT INTO user_logs (user_id, username, action, description, created_at)
     VALUES (
         NEW.user_id,
@@ -626,18 +741,9 @@ BEGIN
     );
 END
 $$
-
 DELIMITER ;
-
--- 
--- Trigger 6:
--- Logs user deletions
 DELIMITER $$
-
-CREATE TRIGGER trg_log_user_delete
-AFTER DELETE ON users
-FOR EACH ROW
-BEGIN
+CREATE TRIGGER `trg_log_user_delete` AFTER DELETE ON `users` FOR EACH ROW BEGIN
     INSERT INTO user_logs (user_id, username, action, description, created_at)
     VALUES (
         OLD.user_id,
@@ -648,10 +754,7 @@ BEGIN
     );
 END
 $$
-
 DELIMITER ;
-
-
 
 -- --------------------------------------------------------
 
@@ -672,6 +775,21 @@ INSERT INTO `user_currency_preference` (`user_id`, `currency_id`) VALUES
 (5, 1),
 (7, 2);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_logs`
+--
+
+CREATE TABLE `user_logs` (
+  `log_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -682,6 +800,18 @@ INSERT INTO `user_currency_preference` (`user_id`, `currency_id`) VALUES
 ALTER TABLE `books`
   ADD PRIMARY KEY (`book_id`),
   ADD KEY `category_id` (`category_id`);
+
+--
+-- Indexes for table `books_archive`
+--
+ALTER TABLE `books_archive`
+  ADD PRIMARY KEY (`book_id`);
+
+--
+-- Indexes for table `book_logs`
+--
+ALTER TABLE `book_logs`
+  ADD PRIMARY KEY (`log_id`);
 
 --
 -- Indexes for table `book_stock_log`
@@ -731,331 +861,57 @@ ALTER TABLE `order_items`
   ADD KEY `book_id` (`book_id`);
 
 --
--- Indexes for table `reviews`
+-- Indexes for table `trg_log_signup`
 --
-ALTER TABLE `reviews`
-  ADD PRIMARY KEY (`review_id`),
-  ADD KEY `book_id` (`book_id`);
-
---
--- Indexes for table `transaction_log`
---
-ALTER TABLE `transaction_log`
-  ADD PRIMARY KEY (`log_id`),
-  ADD KEY `order_id` (`order_id`);
+ALTER TABLE `trg_log_signup`
+  ADD PRIMARY KEY (`log_id`);
 
 --
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`user_id`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD PRIMARY KEY (`user_id`);
 
 --
--- Indexes for table `user_currency_preference`
+-- Indexes for table `user_logs`
 --
-ALTER TABLE `user_currency_preference`
-  ADD PRIMARY KEY (`user_id`),
-  ADD KEY `currency_id` (`currency_id`);
+ALTER TABLE `user_logs`
+  ADD PRIMARY KEY (`log_id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `books`
+-- AUTO_INCREMENT for table `book_logs`
 --
-ALTER TABLE `books`
-  MODIFY `book_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+ALTER TABLE `book_logs`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `book_stock_log`
+-- AUTO_INCREMENT for table `trg_log_signup`
 --
-ALTER TABLE `book_stock_log`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `trg_log_signup`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `cart`
+-- AUTO_INCREMENT for table `user_logs`
 --
-ALTER TABLE `cart`
-  MODIFY `cart_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
-
---
--- AUTO_INCREMENT for table `currencies`
---
-ALTER TABLE `currencies`
-  MODIFY `currency_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `logs`
---
-ALTER TABLE `logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
-
---
--- AUTO_INCREMENT for table `order_items`
---
-ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
-
---
--- AUTO_INCREMENT for table `reviews`
---
-ALTER TABLE `reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
-
---
--- AUTO_INCREMENT for table `transaction_log`
---
-ALTER TABLE `transaction_log`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+ALTER TABLE `user_logs`
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `books`
+-- Constraints for table `user_logs`
 --
-ALTER TABLE `books`
-  ADD CONSTRAINT `books_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
-
---
--- Constraints for table `cart`
---
-ALTER TABLE `cart`
-  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`);
-
---
--- Constraints for table `reviews`
---
-ALTER TABLE `reviews`
-  ADD CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`book_id`) ON DELETE CASCADE;
-
---
--- Constraints for table `transaction_log`
---
-ALTER TABLE `transaction_log`
-  ADD CONSTRAINT `transaction_log_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
-
---
--- Constraints for table `user_currency_preference`
---
-ALTER TABLE `user_currency_preference`
-  ADD CONSTRAINT `user_currency_preference_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  ADD CONSTRAINT `user_currency_preference_ibfk_2` FOREIGN KEY (`currency_id`) REFERENCES `currencies` (`currency_id`);
+ALTER TABLE `user_logs`
+  ADD CONSTRAINT `user_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-
--- ---------------------------------------------------------
--- MORE TRIGGERS:
-
--- Trigger 7: (tested)
--- Trigger to Auto-calculate subtotal in order_items
-DELIMITER $$
-
-CREATE TRIGGER trg_calculate_subtotal
-BEFORE INSERT ON order_items
-FOR EACH ROW
-BEGIN
-  DECLARE book_price DECIMAL(10,2);
-  SELECT price INTO book_price FROM books WHERE book_id = NEW.book_id;
-  SET NEW.subtotal = book_price * NEW.quantity;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 8: (tested)
--- Auto-update total_amount in orders after inserting order items
-DELIMITER $$
-
-CREATE TRIGGER trg_update_order_total
-AFTER INSERT ON order_items
-FOR EACH ROW
-BEGIN
-  UPDATE orders
-  SET total_amount = (
-    SELECT SUM(subtotal)
-    FROM order_items
-    WHERE order_id = NEW.order_id
-  )
-  WHERE order_id = NEW.order_id;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 9:
--- Log Order Status Changes
-DELIMITER $$
-
-CREATE TRIGGER trg_log_order_status
-AFTER UPDATE ON orders
-FOR EACH ROW
-BEGIN
-  IF NOT OLD.status <=> NEW.status THEN
-    INSERT INTO logs (action, username, description, created_at)
-    VALUES (
-      'ORDER_STATUS_CHANGE',
-      NULL,
-      CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
-      NOW()
-    );
-  END IF;
-END
-$$
-
-DELIMITER ;
-
--- Trigger 11: (tested)
--- Logging deleted books (stores as archive)
-CREATE TABLE books_archive (
-  book_id INT PRIMARY KEY,
-  title VARCHAR(255),
-  author VARCHAR(255),
-  price DECIMAL(10,2),
-  stock INT,
-  category_id INT,
-  is_featured TINYINT(1),
-  is_digital TINYINT(1),
-  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-DELIMITER $$
-
-CREATE TRIGGER trg_book_delete
-BEFORE DELETE ON books
-FOR EACH ROW
-BEGIN
-  INSERT INTO books_archive (
-    book_id, title, author, price, stock,
-    category_id, is_featured, is_digital, deleted_at
-  )
-  VALUES (
-    OLD.book_id, OLD.title, OLD.author, OLD.price, OLD.stock,
-    OLD.category_id, OLD.is_featured, OLD.is_digital, NOW()
-  );
-END
-$$
-
-DELIMITER ;
-
---
--- Trigger 12: (tested)
--- Logs when new books are added
---
-CREATE TABLE book_logs (
-    log_id INT AUTO_INCREMENT PRIMARY KEY,
-    book_id INT,
-    action VARCHAR(50),
-    log_time DATETIME,
-    title_logged VARCHAR(255),
-    author_logged VARCHAR(255)
-);
-
-DELIMITER $$
-
-CREATE TRIGGER log_book_insert
-AFTER INSERT ON books
-FOR EACH ROW
-BEGIN
-    INSERT INTO book_logs (book_id, action, log_time, title_logged, author_logged)
-    VALUES (NEW.book_id, 'INSERT', NOW(), NEW.title, NEW.author);
-END$$
-
-DELIMITER ;
-
-
--- Trigger 13: (tested)
--- Automatically log a warning when a book’s stock falls below a threshold 
-DELIMITER $$
-
-DROP TRIGGER IF EXISTS trg_low_stock_alert$$
-
-CREATE TRIGGER trg_low_stock_alert
-AFTER UPDATE ON books
-FOR EACH ROW
-BEGIN
-  IF NEW.stock < 5 AND NEW.stock < OLD.stock THEN
-    INSERT INTO logs (action, description, created_at)
-    VALUES (
-      'LOW_STOCK_ALERT',
-      CONCAT('Book "', NEW.title, '" has low stock (', NEW.stock, ' left).'),
-      NOW()
-    );
-  END IF;
-END$$
-
-DELIMITER ;
-
-
---
--- Trigger 14: (tested)
--- Trigger to Decrease Stock Automatically
-DELIMITER $$
-
-CREATE TRIGGER trg_update_stock_after_order_items_insert
-AFTER INSERT ON order_items
-FOR EACH ROW
-BEGIN
-    UPDATE books
-    SET stock = stock - NEW.quantity
-    WHERE book_id = NEW.book_id;
-END
-$$
-
-DELIMITER ;
-
---  
--- Trigger 15: prevent adding items to cart when out of stock
-DELIMITER $$
-
-CREATE TRIGGER trg_validate_cart_stock
-BEFORE INSERT ON cart
-FOR EACH ROW
-BEGIN
-    DECLARE current_stock INT;
-    
-    -- get current stock for the book
-    SELECT stock INTO current_stock 
-    FROM books 
-    WHERE book_id = NEW.book_id;
-    
-    -- check if requested quantity exceeds available stock
-    IF current_stock < NEW.quantity THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot add to cart: Not enough stock available';
-    END IF;
-    
-    -- check if stock is zero
-    IF current_stock = 0 THEN
-        SIGNAL SQLSTATE '45001'
-        SET MESSAGE_TEXT = 'Cannot add to cart: Item is out of stock';
-    END IF;
-END$$
-
-DELIMITER ;
