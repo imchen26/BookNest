@@ -32,7 +32,7 @@ $stmt->execute();
 $order_id = $stmt->insert_id;
 
 foreach ($_SESSION['cart'] as $book_id => $qty) {
-    $stmt = $conn->prepare("SELECT price FROM books WHERE book_id = ?");
+    /*$stmt = $conn->prepare("SELECT price FROM books WHERE book_id = ?");
     $stmt->bind_param("i", $book_id);
     $stmt->execute();
     $stmt->bind_result($price);
@@ -42,6 +42,10 @@ foreach ($_SESSION['cart'] as $book_id => $qty) {
 
     $stmt = $conn->prepare("INSERT INTO order_items (order_id, book_id, quantity, subtotal) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("iiid", $order_id, $book_id, $qty, $subtotal);
+    $stmt->execute(); */
+
+    $stmt = $conn->prepare("INSERT INTO order_items (order_id, book_id, quantity) VALUES (?, ?, ?)");
+    $stmt->bind_param("iii", $order_id, $book_id, $qty);
     $stmt->execute();
 }
 
