@@ -594,24 +594,64 @@ CREATE TABLE trg_log_signup (
 );
 
 --
--- Trigger 5:  `users`
+-- Table for user logs (for signup and delete)
 --
+CREATE TABLE user_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,              -- references users.user_id
+    username VARCHAR(50) NOT NULL,     -- store username for easier reading
+    action VARCHAR(50) NOT NULL,       -- e.g., 'SIGNUP', 'DELETE_USER'
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+--
+-- Trigger 5: (tested)
+-- Logs user signups
 DELIMITER $$
+
 CREATE TRIGGER trg_log_signup
 AFTER INSERT ON users
 FOR EACH ROW
 BEGIN
-  INSERT INTO logs (action, username, description, created_at)
-  VALUES (
-    'SIGNUP',
-    NEW.username,
-    CONCAT('New user ', NEW.username, ' registered.'),
-    NOW()
-  );
+    INSERT INTO user_logs (user_id, username, action, description, created_at)
+    VALUES (
+        NEW.user_id,
+        NEW.username,
+        'SIGNUP',
+        CONCAT('New user ', NEW.username, ' registered.'),
+        NOW()
+    );
 END
 $$
 
 DELIMITER ;
+
+-- 
+-- Trigger 6:
+-- Logs user deletions
+DELIMITER $$
+
+CREATE TRIGGER trg_log_user_delete
+AFTER DELETE ON users
+FOR EACH ROW
+BEGIN
+    INSERT INTO user_logs (user_id, username, action, description, created_at)
+    VALUES (
+        OLD.user_id,
+        OLD.username,
+        'DELETE_USER',
+        CONCAT('User ', OLD.username, ' has been deleted.'),
+        NOW()
+    );
+END
+$$
+
+DELIMITER ;
+
+
 
 -- --------------------------------------------------------
 
@@ -833,7 +873,7 @@ COMMIT;
 -- ---------------------------------------------------------
 -- MORE TRIGGERS:
 
--- Trigger 6:
+-- Trigger 7: (tested)
 -- Trigger to Auto-calculate subtotal in order_items
 DELIMITER $$
 
@@ -849,7 +889,7 @@ $$
 
 DELIMITER ;
 
--- Trigger 7:
+-- Trigger 8: 
 -- Auto-update total_amount in orders after inserting order items
 DELIMITER $$
 
@@ -869,7 +909,7 @@ $$
 
 DELIMITER ;
 
--- Trigger 8:
+-- Trigger 9:
 -- Log Order Status Changes
 DELIMITER $$
 
@@ -891,27 +931,7 @@ $$
 
 DELIMITER ;
 
--- Trigger 9:
--- Create an audit trail when a user is deleted.
-DELIMITER $$
-
-CREATE TRIGGER trg_log_user_delete
-AFTER DELETE ON users
-FOR EACH ROW
-BEGIN
-  INSERT INTO logs (action, username, description, created_at)
-  VALUES (
-    'DELETE_USER',
-    OLD.username,
-    CONCAT('User ', OLD.username, ' has been deleted.'),
-    NOW()
-  );
-END
-$$
-
-DELIMITER ;
-
--- Trigger 10:
+-- Trigger 11: (tested)
 -- Logging deleted books (stores as archive)
 CREATE TABLE books_archive (
   book_id INT PRIMARY KEY,
@@ -945,7 +965,7 @@ $$
 DELIMITER ;
 
 --
--- Trigger 11:
+-- Trigger 12: (tested)
 -- Logs when new books are added
 --
 CREATE TABLE book_logs (
@@ -970,7 +990,7 @@ END$$
 DELIMITER ;
 
 
--- Trigger 12:
+-- Trigger 13: (tested)
 -- Automatically log a warning when a book’s stock falls below a threshold 
 DELIMITER $$
 
@@ -994,7 +1014,7 @@ DELIMITER ;
 
 
 --
--- Trigger 13:
+-- Trigger 14: (tested)
 -- Trigger to Decrease Stock Automatically
 DELIMITER $$
 
