@@ -889,7 +889,7 @@ $$
 
 DELIMITER ;
 
--- Trigger 8: 
+-- Trigger 8: (tested)
 -- Auto-update total_amount in orders after inserting order items
 DELIMITER $$
 
