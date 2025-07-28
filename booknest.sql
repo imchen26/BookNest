@@ -917,10 +917,9 @@ AFTER UPDATE ON orders
 FOR EACH ROW
 BEGIN
   IF NOT OLD.status <=> NEW.status THEN
-    INSERT INTO logs (action, username, description, created_at)
+    INSERT INTO logs (action, description, created_at)
     VALUES (
       'ORDER_STATUS_CHANGE',
-      NULL,
       CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
       NOW()
     );
