@@ -974,20 +974,37 @@ DELIMITER ;
 -- Automatically log a warning when a book’s stock falls below a threshold 
 DELIMITER $$
 
+DROP TRIGGER IF EXISTS trg_low_stock_alert$$
+
 CREATE TRIGGER trg_low_stock_alert
 AFTER UPDATE ON books
 FOR EACH ROW
 BEGIN
-  -- Fire only if stock decreases and drops below 5
   IF NEW.stock < 5 AND NEW.stock < OLD.stock THEN
-    INSERT INTO logs (action, name, description, created_at)
+    INSERT INTO logs (action, description, created_at)
     VALUES (
       'LOW_STOCK_ALERT',
-      NULL,
       CONCAT('Book "', NEW.title, '" has low stock (', NEW.stock, ' left).'),
       NOW()
     );
   END IF;
+END$$
+
+DELIMITER ;
+
+
+--
+-- Trigger 13:
+-- Trigger to Decrease Stock Automatically
+DELIMITER $$
+
+CREATE TRIGGER trg_update_stock_after_order_items_insert
+AFTER INSERT ON order_items
+FOR EACH ROW
+BEGIN
+    UPDATE books
+    SET stock = stock - NEW.quantity
+    WHERE book_id = NEW.book_id;
 END
 $$
 

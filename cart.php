@@ -37,30 +37,33 @@ $total = 0;
                         <th>Action</th>
                     </tr>
                 </thead>
+                
                 <tbody>
-                    <?php 
-                    foreach ($_SESSION['cart'] as $book_id => $qty):
+                    <?php foreach ($_SESSION['cart'] as $book_id => $qty): ?>
+                        <?php 
                         $stmt = $conn->prepare("SELECT title, price FROM books WHERE book_id = ?");
                         $stmt->bind_param("i", $book_id);
                         $stmt->execute();
                         $result = $stmt->get_result();
                         $book = $result->fetch_assoc();
+                        $stmt->close();
 
-                        if (!$book) continue;
+                        if (!$book) continue; // skip if book not found
 
                         $subtotal = $book['price'] * $qty;
                         $total += $subtotal;
-                    ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($book['title']); ?></td>
-                        <td><?php echo $qty; ?></td>
-                        <td><?php echo display_price($subtotal); ?></td>
-                        <td>
-                            <a href="?remove=<?php echo $book_id; ?>" class="remove-btn" onclick="return confirm('Remove this item from cart?');">Remove</a>
-                        </td>
-                    </tr>
+                        ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($book['title']); ?></td>
+                            <td><?php echo $qty; ?></td>
+                            <td><?php echo display_price($subtotal); ?></td>
+                            <td>
+                                <a href="?remove=<?php echo $book_id; ?>" class="remove-btn" onclick="return confirm('Remove this item from cart?');">Remove</a>
+                            </td>
+                        </tr>
                     <?php endforeach; ?>
                 </tbody>
+
             </table>
 
             <div class="cart-summary">
