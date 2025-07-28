@@ -1029,3 +1029,33 @@ END
 $$
 
 DELIMITER ;
+
+--  
+-- Trigger 15: prevent adding items to cart when out of stock
+DELIMITER $$
+
+CREATE TRIGGER trg_validate_cart_stock
+BEFORE INSERT ON cart
+FOR EACH ROW
+BEGIN
+    DECLARE current_stock INT;
+    
+    -- get current stock for the book
+    SELECT stock INTO current_stock 
+    FROM books 
+    WHERE book_id = NEW.book_id;
+    
+    -- check if requested quantity exceeds available stock
+    IF current_stock < NEW.quantity THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot add to cart: Not enough stock available';
+    END IF;
+    
+    -- check if stock is zero
+    IF current_stock = 0 THEN
+        SIGNAL SQLSTATE '45001'
+        SET MESSAGE_TEXT = 'Cannot add to cart: Item is out of stock';
+    END IF;
+END$$
+
+DELIMITER ;
