@@ -139,7 +139,7 @@ INSERT INTO `books` (`book_id`, `title`, `author`, `price`, `stock`, `category_i
 (26, 'Salt, Fat, Acid, Heat', 'Samin Nosrat', 750.00, 20, 16, 1, 0);
 
 --
--- Triggers `books`
+--  Trigger 1: `books`
 --
 DELIMITER $$
 CREATE TRIGGER `after_update_book_stock` AFTER UPDATE ON `books` FOR EACH ROW BEGIN
@@ -307,16 +307,16 @@ INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `status`, `total_amou
 (19, 7, '2025-07-27 18:38:47', 'pending', 780.00);
 
 --
--- Triggers `orders`
+-- Trigger 2: `orders`
 --
 DELIMITER $$
 CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
-  INSERT INTO `transaction_log` (
-    `order_id`,
-    `payment_method`,
-    `payment_status`,
-    `amount`,
-    `timestamp`
+  INSERT INTO transaction_log (
+    order_id,
+    payment_method,
+    payment_status,
+    amount,
+    timestamp
   )
   VALUES (
     NEW.order_id,
@@ -328,6 +328,10 @@ CREATE TRIGGER `after_order_insert` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
 END
 $$
 DELIMITER ;
+
+--
+-- Trigger 3: update wallet
+--
 DELIMITER $$
 CREATE TRIGGER `update_wallets_after_order_update` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
     -- Run only when order becomes completed
@@ -390,7 +394,7 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `book_id`, `quantity`, `subtot
 (17, 19, 25, 1, 780.00);
 
 --
--- Triggers `order_items`
+-- Trigger 4: `order_items`
 --
 DELIMITER $$
 CREATE TRIGGER `trg_reduce_stock` BEFORE INSERT ON `order_items` FOR EACH ROW BEGIN
@@ -579,15 +583,34 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `role`, `create
 (8, 'cust2', '$2y$10$ZF/2hdkkSikN9lBMd.CBEu6f4ijDaX3d1RVzPKH7VqjPUbfY8YKKi', 'cust2@email.com', 'customer', '2025-07-17 12:20:48', 12000.00),
 (9, 'cust3', '$2y$10$9r1QbwSW6/vplAOFRbq7CeepC24eAm2wCULHB9PCxmOevfNYuIO8K', 'cust3@gmail.com', 'customer', '2025-07-27 16:58:54', 5000.00);
 
+-- 
+-- Table for signup log
 --
--- Triggers `users`
+CREATE TABLE trg_log_signup (
+  log_id INT AUTO_INCREMENT PRIMARY KEY,
+  action VARCHAR(50) NOT NULL,
+  description TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+--
+-- Trigger 5:  `users`
 --
 DELIMITER $$
-CREATE TRIGGER `trg_log_signup` AFTER INSERT ON `users` FOR EACH ROW BEGIN
-    INSERT INTO logs(action, description, created_at)
-    VALUES('SIGNUP', CONCAT('New user ', NEW.username, ' registered.'), NOW());
+CREATE TRIGGER trg_log_signup
+AFTER INSERT ON users
+FOR EACH ROW
+BEGIN
+  INSERT INTO logs (action, username, description, created_at)
+  VALUES (
+    'SIGNUP',
+    NEW.username,
+    CONCAT('New user ', NEW.username, ' registered.'),
+    NOW()
+  );
 END
 $$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -805,3 +828,141 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- ---------------------------------------------------------
+-- MORE TRIGGERS:
+
+-- Trigger 6:
+-- Trigger to Auto-calculate subtotal in order_items
+DELIMITER $$
+
+CREATE TRIGGER trg_calculate_subtotal
+BEFORE INSERT ON order_items
+FOR EACH ROW
+BEGIN
+  DECLARE book_price DECIMAL(10,2);
+  SELECT price INTO book_price FROM books WHERE book_id = NEW.book_id;
+  SET NEW.subtotal = book_price * NEW.quantity;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 7:
+-- Auto-update total_amount in orders after inserting order items
+DELIMITER $$
+
+CREATE TRIGGER trg_update_order_total
+AFTER INSERT ON order_items
+FOR EACH ROW
+BEGIN
+  UPDATE orders
+  SET total_amount = (
+    SELECT SUM(subtotal)
+    FROM order_items
+    WHERE order_id = NEW.order_id
+  )
+  WHERE order_id = NEW.order_id;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 8:
+-- Log Order Status Changes
+DELIMITER $$
+
+CREATE TRIGGER trg_log_order_status
+AFTER UPDATE ON orders
+FOR EACH ROW
+BEGIN
+  IF NOT OLD.status <=> NEW.status THEN
+    INSERT INTO logs (action, username, description, created_at)
+    VALUES (
+      'ORDER_STATUS_CHANGE',
+      NULL,
+      CONCAT('Order ID ', NEW.order_id, ' status changed from ', OLD.status, ' to ', NEW.status),
+      NOW()
+    );
+  END IF;
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 9:
+-- Create an audit trail when a user is deleted.
+DELIMITER $$
+
+CREATE TRIGGER trg_log_user_delete
+AFTER DELETE ON users
+FOR EACH ROW
+BEGIN
+  INSERT INTO logs (action, username, description, created_at)
+  VALUES (
+    'DELETE_USER',
+    OLD.username,
+    CONCAT('User ', OLD.username, ' has been deleted.'),
+    NOW()
+  );
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 10:
+-- Logging deleted books (stores as archive)
+CREATE TABLE books_archive (
+  book_id INT PRIMARY KEY,
+  title VARCHAR(255),
+  author VARCHAR(255),
+  price DECIMAL(10,2),
+  stock INT,
+  category_id INT,
+  is_featured TINYINT(1),
+  is_digital TINYINT(1),
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER $$
+
+CREATE TRIGGER trg_book_delete
+BEFORE DELETE ON books
+FOR EACH ROW
+BEGIN
+  INSERT INTO books_archive (
+    book_id, title, author, price, stock,
+    category_id, is_featured, is_digital, deleted_at
+  )
+  VALUES (
+    OLD.book_id, OLD.title, OLD.author, OLD.price, OLD.stock,
+    OLD.category_id, OLD.is_featured, OLD.is_digital, NOW()
+  );
+END
+$$
+
+DELIMITER ;
+
+-- Trigger 11:
+-- Automatically log a warning when a book’s stock falls below a threshold 
+DELIMITER $$
+
+CREATE TRIGGER trg_low_stock_alert
+AFTER UPDATE ON books
+FOR EACH ROW
+BEGIN
+  -- Fire only if stock decreases and drops below 5
+  IF NEW.stock < 5 AND NEW.stock < OLD.stock THEN
+    INSERT INTO logs (action, name, description, created_at)
+    VALUES (
+      'LOW_STOCK_ALERT',
+      NULL,
+      CONCAT('Book "', NEW.title, '" has low stock (', NEW.stock, ' left).'),
+      NOW()
+    );
+  END IF;
+END
+$$
+
+DELIMITER ;
