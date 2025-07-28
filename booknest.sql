@@ -563,7 +563,7 @@ INSERT INTO `transaction_log` (`log_id`, `order_id`, `payment_method`, `payment_
 --
 
 CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL,
+  `user_id` int(11) AUTO_INCREMENT PRIMARY KEY NOT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
@@ -598,14 +598,13 @@ CREATE TABLE trg_log_signup (
 --
 CREATE TABLE user_logs (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,              -- references users.user_id
-    username VARCHAR(50) NOT NULL,     -- store username for easier reading
-    action VARCHAR(50) NOT NULL,       -- e.g., 'SIGNUP', 'DELETE_USER'
+    user_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    action VARCHAR(50) NOT NULL,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Trigger 5: (tested)
@@ -748,7 +747,7 @@ ALTER TABLE `transaction_log`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`user_id`),
+  -- ADD PRIMARY KEY (`user_id`),
   ADD UNIQUE KEY `username` (`username`);
 
 --
