@@ -49,9 +49,9 @@ $currency_stmt->close();
         </ul>
         <a href="wallet.php" class="wallet-link">Manage Wallet</a>
         <a href="order_history.php" class="orders-link">View Order History</a>
-        <form method="post" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');" style="margin-top:20px;">
+        <!--<form method="post" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.');" style="margin-top:20px;">
             <button type="submit" name="delete_account" class="delete-btn">Delete Account</button>
-        </form>
+        </form> -->
     </div>
 </div>
 
