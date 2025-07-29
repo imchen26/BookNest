@@ -127,6 +127,9 @@ if (isset($_SESSION['user_id'])) {
             <ul>
                 <li><a href="/BookNest/index.php">Home</a></li>
                 <li><a href="/BookNest/browse.php">Browse</a></li>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <li><a href="/BookNest/profile.php">Profile</a></li>
+                <?php endif; ?>
                 <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                     <li><a href="/BookNest/admin-dashboard.php">Admin Panel</a></li>
                 <?php elseif (isset($_SESSION['role']) && $_SESSION['role'] === 'staff'): ?>
