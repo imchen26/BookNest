@@ -629,7 +629,7 @@ $$
 DELIMITER ;
 
 -- 
--- Trigger 6:
+-- Trigger 6: (wont be tested)
 -- Logs user deletions
 DELIMITER $$
 
@@ -908,7 +908,7 @@ $$
 
 DELIMITER ;
 
--- Trigger 9:
+-- Trigger 9: (tested)
 -- Log Order Status Changes
 DELIMITER $$
 
