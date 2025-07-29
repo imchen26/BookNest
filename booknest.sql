@@ -330,7 +330,7 @@ $$
 DELIMITER ;
 
 --
--- Trigger 3: update wallet
+-- Trigger 3: update wallet (tested)
 --
 DELIMITER $$
 CREATE TRIGGER `update_wallets_after_order_update` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
